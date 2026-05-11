@@ -1,0 +1,29 @@
+@import "tailwindcss";
+@plugin "tailwind-scrollbar-hide";
+
+@layer base {
+  :root {
+    --background: #F8F6F1;
+    --foreground: #1a1a1a;
+    --primary: #A44A3F;
+    --primary-foreground: #F8F6F1;
+    --secondary: #e8e4dc;
+    --secondary-foreground: #1a1a1a;
+    --muted: #e8e4dc;
+    --muted-foreground: #6B7280;
+    --border: rgba(0,0,0,0.1);
+    --input: rgba(0,0,0,0.05);
+    --ring: #A44A3F;
+    --destructive: #dc2626;
+    --radius-md: 3px;
+  }
+}
+
+* {
+  font-family: monospace;
+}
+
+::selection {
+  background: #A44A3F;
+  color: white;
+}
