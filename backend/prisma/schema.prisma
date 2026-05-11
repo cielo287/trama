@@ -1,0 +1,148 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  nombre    String
+  apellido  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  refreshTokens RefreshToken[]
+  obras     Obra[]
+  encargados Encargado[]
+  materiales Material[]
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  uuid String @unique 
+  token     String @unique
+  expiresAt DateTime
+  device    String?
+  userId    Int
+  user      Usuario  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model Obra {
+  id Int @id @default(autoincrement())
+  nombre String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  usuarioId Int
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  tareas Tarea[]
+}
+
+model Tarea {
+  id Int @id @default(autoincrement())
+  titulo String
+  descripcion String?
+  fechaInicio DateTime?
+  fechaFin DateTime?
+  ordenEjecucion Int?
+  prioridad String?
+  estado String?
+  imagenes ImagenTarea[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  obraId Int
+  obra Obra @relation(fields: [obraId], references: [id])
+
+  tareaPadreId Int?
+  tareaPadre Tarea? @relation("TareaHijos", fields: [tareaPadreId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subtareas Tarea[] @relation("TareaHijos")
+
+  detallesMaterial DetalleMaterial[]
+  manoDeObra ManoDeObra[]
+
+}
+
+model ImagenTarea {
+  id Int @id @default(autoincrement())
+  url String
+
+  tareaId Int
+  tarea Tarea @relation(fields: [tareaId], references: [id])
+}
+
+model Material {
+  id              Int      @id @default(autoincrement())
+  nombre          String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  usuarioId Int
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  
+  detallesMaterial DetalleMaterial[]
+}
+
+model DetalleMaterial {
+  id             Int      @id @default(autoincrement())
+  precioUnitario Decimal
+  cantidad       Decimal
+  unidadDeMedida  String   
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relación con Material
+  materialId     Int
+  material       Material @relation(fields: [materialId], references: [id])
+  
+  // Relación con Tarea
+  tareaId        Int
+  tarea          Tarea    @relation(fields: [tareaId], references: [id])
+}
+
+model Rubro {
+  id         Int         @id @default(autoincrement())
+  nombre     String      @unique
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  
+  encargados Encargado[]
+}
+
+model Encargado {
+  id         Int      @id @default(autoincrement())
+  nombre     String
+  apellido   String
+  telefono   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  usuarioId Int
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  
+  rubros     Rubro[]
+  manosDeObra ManoDeObra[]
+}
+
+model ManoDeObra {
+  id        Int      @id @default(autoincrement())
+  precio    Decimal
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relación con Encargado (opcional, puede no estar asignado)
+  encargadoId Int?
+  encargado   Encargado? @relation(fields: [encargadoId], references: [id])
+  
+  // Relación con Tarea
+  tareaId   Int
+  tarea     Tarea @relation(fields: [tareaId], references: [id])
+}
