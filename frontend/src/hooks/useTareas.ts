@@ -60,5 +60,9 @@ export function useTareas(obraId: number) {
     }
   }
 
-  return { tareas, loading, actionLoading, error, crear, editar, eliminar }
+  function reordenar(nuevasTareas: Tarea[]) {
+    setTareas(nuevasTareas)
+  }
+
+  return { tareas, loading, actionLoading, error, crear, editar, eliminar, reordenar }
 }

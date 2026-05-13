@@ -15,7 +15,7 @@ export default function ObraPage() {
   const [obra, setObra] = useState<Obra | null>(null)
   const [loading, setLoading] = useState(true)
   const [seccion, setSeccion] = useState<Seccion>('tareas')
-  const { tareas, loading: loadingTareas, actionLoading, crear, editar, eliminar } = useTareas(Number(id))
+  const { tareas, loading: loadingTareas, actionLoading, crear, editar, eliminar, reordenar } = useTareas(Number(id))
 
   const [panelAbierto, setPanelAbierto] = useState(false)
   const [tareaSeleccionada, setTareaSeleccionada] = useState<Tarea | null>(null)
@@ -45,6 +45,28 @@ export default function ObraPage() {
     setPanelAbierto(false)
     setTareaSeleccionada(null)
   }
+
+function handleUpdateTareas(nuevasTareas: Tarea[]) {
+  // Actualizamos estado local primero
+  reordenar(nuevasTareas)
+
+  // Sincronizamos con backend solo lo que cambió
+  nuevasTareas.forEach(async (nueva, index) => {
+    const original = tareas.find(t => t.id === nueva.id)
+    if (!original) return
+    if (
+      original.fechaInicio !== nueva.fechaInicio ||
+      original.fechaFin !== nueva.fechaFin ||
+      original.ordenEjecucion !== index + 1
+    ) {
+      await editar(nueva.id, {
+        fechaInicio: nueva.fechaInicio ?? undefined,
+        fechaFin: nueva.fechaFin ?? undefined,
+        ordenEjecucion: index + 1,
+      })
+    }
+  })
+}
 
   if (loading) {
     return (
@@ -97,6 +119,7 @@ export default function ObraPage() {
                   tareas={tareas ?? []}
                   onTareaClick={abrirEditarTarea}
                   onNuevaTarea={abrirNuevaTarea}
+                  onUpdateTareas={handleUpdateTareas}
                 />
           )}
           {seccion === 'cronograma' && <Proximamente />}

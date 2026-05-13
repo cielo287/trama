@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { Input } from '@/components/ui/input'
+import { useTypewriter } from '@/hooks/useMaquinaDeEscribir'
 
 export default function LoginPage() {
   const { login, actionLoading, error } = useAuth()
@@ -11,6 +12,12 @@ export default function LoginPage() {
     e.preventDefault()
     await login(email, password)
   }
+  const poema = `De un tapiz, que propone a la mirada
+    Un caos de colores y de líneas
+    Irresponsables, un azar y un vértigo
+    Pero un orden secreto lo gobierna.`
+
+  const typedText = useTypewriter(poema,50)
 
   return (
     <div className="relative min-h-screen bg-[#F8F6F1] flex items-center overflow-hidden">
@@ -53,27 +60,44 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-[1200px] mx-auto px-12 flex items-center">
 
-        {/* Logo */}
-        <div className="anim-logo flex-1 flex items-center">
-          <div className="relative -translate-y-10">
-            {/* Líneas cruzadas detrás del logo */}
-            <div className="absolute inset-0 flex items-center justify-center -m-16 opacity-[0.22] pointer-events-none">
-              <div className="absolute w-px h-96 bg-gray-400 rotate-12" />
-              <div className="absolute h-px w-96 bg-gray-400 -rotate-3" />
-            </div>
-            <h1
-              className="relative leading-none tracking-tighter whitespace-nowrap text-[#333333]"
-              style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", fontSize: 'clamp(80px, 10vw, 148px)', fontWeight: 200 }}
-            >
-              trama.
-            </h1>
-          </div>
-        </div>
+{/* Logo */}
+<div className="anim-logo flex-1 flex items-center">
+  <div className="relative -translate-y-10 h-[260px]">
+
+    {/* Líneas cruzadas detrás del logo */}
+    <div className="absolute inset-0 flex items-center justify-center -m-16 opacity-[0.22] pointer-events-none">
+      <div className="absolute w-px h-96 bg-gray-400 rotate-12" />
+      <div className="absolute h-px w-96 bg-gray-400 -rotate-3" />
+    </div>
+
+    {/* Logo fijo */}
+    <h1
+      className="relative leading-none tracking-tighter whitespace-nowrap text-[#333333]"
+      style={{
+        fontFamily: "'Helvetica Neue', Arial, sans-serif",
+        fontSize: 'clamp(80px, 10vw, 148px)',
+        fontWeight: 200
+      }}
+    >
+      trama.
+    </h1>
+
+    {/* Poema */}
+    <p
+      className="absolute left-0 top-[145px] text-[#4B5563] text-[13px] leading-7 tracking-wide whitespace-pre-line max-w-[420px]"
+      style={{ fontFamily: 'Menlo, Monaco, Consolas, monospace' }}
+    >
+      {typedText}
+      <span className="animate-pulse">|</span>
+    </p>
+
+  </div>
+</div>
         
 
         {/* Card */}
 <div className="anim-card w-full max-w-[400px] mt-12 md:mt-0 md:ml-auto md:mr-16">
-  <div className="bg-white/30 backdrop-blur-md border border-gray-200/50 p-10 md:p-14 shadow-[30px_30px_60px_-15px_rgba(0,0,0,0.07)] relative rounded-sm">
+  <div className="bg-white/20 backdrop-blur-sm border border-gray-200/40 p-10 md:p-14 shadow-[20px_20px_40px_-20px_rgba(0,0,0,0.08)] relative rounded-sm">
     
     <div className="absolute -top-px -left-px w-6 h-6 border-l border-t border-gray-400" />
     

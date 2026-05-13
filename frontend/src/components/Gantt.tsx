@@ -1,12 +1,30 @@
 import { useState } from 'react'
-import { startOfMonth, endOfMonth, eachDayOfInterval, format, isToday, differenceInDays, startOfDay } from 'date-fns'
+import { 
+  format, 
+  isToday, 
+} from 'date-fns'
 import { es } from 'date-fns/locale'
 import { type Tarea } from '../types'
-
-const COL_TAREA = 220
-const COL_ENCARGADO = 160
-const ROW_H = 48
-const MIN_COL_W = 34 // Ancho mínimo por columna de día
+import { motion } from 'motion/react'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { useGantt } from '../hooks/useGantt'
 
 const ESTADO_COLOR: Record<string, string> = {
   PENDIENTE: '#67E8F9',
@@ -16,252 +34,276 @@ const ESTADO_COLOR: Record<string, string> = {
 
 interface Props {
   tareas: Tarea[]
+  onUpdateTareas: (nuevasTareas: Tarea[]) => void
   onTareaClick: (tarea: Tarea) => void
   onNuevaTarea: () => void
 }
 
-export default function Gantt({ tareas, onTareaClick, onNuevaTarea }: Props) {
-  const [fecha, setFecha] = useState(new Date())
+export default function Gantt({ tareas, onUpdateTareas, onTareaClick, onNuevaTarea }: Props) {
+  const [activeId, setActiveId] = useState<string | null>(null)
   
-  const start = startOfMonth(fecha)
-  const end = endOfMonth(fecha)
-  const dias = eachDayOfInterval({ start, end })
-  const totalDays = dias.length
+  const {
+    fecha,
+    dias,
+    totalDays,
+    tareasConFecha,
+    tareasSinFecha,
+    config,
+    navegarMes,
+    getBarProps,
+    reordenarTareas,
+    redimensionarTarea,
+    desplazarTarea,
+    asignarFechaClick
+  } = useGantt({ tareas, onUpdateTareas })
 
   const mesLabel = format(fecha, 'MMMM yyyy', { locale: es })
     .replace(/^\w/, c => c.toUpperCase())
 
-  function prevMes() {
-    setFecha(f => new Date(f.getFullYear(), f.getMonth() - 1, 1))
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
   }
 
-  function nextMes() {
-    setFecha(f => new Date(f.getFullYear(), f.getMonth() + 1, 1))
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveId(null)
+    if (!over || active.id === over.id) return
+    reordenarTareas(active.id as string, over.id as string)
   }
 
-  function getBarProps(tarea: Tarea) {
-  if (!tarea.fechaInicio || !tarea.fechaFin) return null
+  const SortableRow = ({ tarea }: { tarea: Tarea }) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(tarea.id) })
+    const bar = getBarProps(tarea)
+    
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      zIndex: isDragging ? 50 : 'auto',
+      opacity: isDragging ? 0.5 : 1,
+    }
 
-  // Parseamos solo la parte de fecha ignorando timezone
-  const [yI, mI, dI] = tarea.fechaInicio.slice(0, 10).split('-').map(Number)
-  const [yF, mF, dF] = tarea.fechaFin.slice(0, 10).split('-').map(Number)
+    return (
+      <div 
+        ref={setNodeRef} 
+        style={style} 
+        className="flex border-b border-black/[0.04] bg-white group hover:bg-gray-50/50"
+      >
+        {/* Columnas Fijas (Sticky) */}
+        <div 
+          className="sticky left-0 z-20 flex bg-white group-hover:bg-gray-50 border-r border-black/[0.08]" 
+          style={{ width: config.colTarea + config.colEncargado, height: config.rowHeight }}
+        >
+          <div {...attributes} {...listeners} className="p-2 cursor-grab active:cursor-grabbing text-gray-300 hover:text-[#A44A3F] transition-colors flex items-center">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+          </div>
+          
+          <div onClick={() => onTareaClick(tarea)} style={{ width: config.colTarea - 28 }} className="px-2 flex items-center gap-2 border-r border-black/[0.06] overflow-hidden cursor-pointer">
+            <span className="font-mono text-[13px] text-[#333] truncate flex-1 group-hover:text-[#A44A3F] transition-colors">
+              {tarea.titulo}
+            </span>
+          </div>
+          
+          <div style={{ width: config.colEncargado }} className="px-4 flex items-center overflow-hidden">
+            {tarea.manoDeObra?.[0]?.encargado ? (
+              <span className="font-mono text-[13px] text-[#6B7280] truncate">
+                {tarea.manoDeObra[0].encargado.nombre.charAt(0)}. {tarea.manoDeObra[0].encargado.apellido}
+              </span>
+            ) : (
+              <span className="font-mono text-[10px] text-[#ccc] uppercase tracking-wider">N/A</span>
+            )}
+          </div>
+        </div>
 
-  const inicio   = new Date(yI, mI - 1, dI)
-  const fin      = new Date(yF, mF - 1, dF)
-  const mesStart = startOfMonth(fecha)
-  const mesEnd   = endOfMonth(fecha)
+        {/* Timeline (Scrollable) */}
+        <div className="flex-1 relative flex items-center px-[2px] h-[48px]">
+          {/* Grid de interacción para asignar fechas */}
+          {!bar && (
+            <div className="absolute inset-0 flex">
+              {dias.map((_, idx) => (
+                <div 
+                  key={`action-${idx}`}
+                  onClick={() => asignarFechaClick(tarea, idx)}
+                  style={{ width: `${100 / totalDays}%`, minWidth: config.minColWidth }}
+                  className="h-full hover:bg-[#A44A3F]/[0.05] cursor-crosshair transition-colors border-r border-black/[0.01]"
+                  title="Click para programar desde este día"
+                />
+              ))}
+            </div>
+          )}
 
-  if (fin < mesStart || inicio > mesEnd) return null
+          {/* Grid Lines de fondo */}
+          <div className="absolute inset-0 pointer-events-none flex">
+            {dias.map(dia => (
+              <div 
+                key={`grid-${dia.toISOString()}`}
+                style={{ width: `${100 / totalDays}%`, minWidth: config.minColWidth }}
+                className={`border-r last:border-r-0 border-black/[0.02] ${isToday(dia) ? 'bg-[#A44A3F]/[0.02]' : ''}`}
+              />
+            ))}
+          </div>
 
-  const clampedInicio = inicio < mesStart ? mesStart : inicio
-  const clampedFin    = fin    > mesEnd   ? mesEnd   : fin
-
-  const daysBefore = differenceInDays(clampedInicio, mesStart)
-  const duration   = differenceInDays(clampedFin, clampedInicio) + 1
-
-  const left  = (daysBefore / totalDays) * 100
-  const width = (duration / totalDays) * 100
-
-  return { left, width }
-}
-
-  const minTotalW = totalDays * MIN_COL_W
+          {bar && (
+            <motion.div 
+              drag="x"
+              dragMomentum={false}
+              dragElastic={0}
+              onDragEnd={(_, info) => desplazarTarea(tarea, info.offset.x)}
+              style={{ 
+                position: 'absolute', 
+                left: `${bar.left}%`, 
+                width: `${bar.width}%`, 
+                height: 14, 
+                background: ESTADO_COLOR[tarea.estado ?? 'PENDIENTE'],
+                borderRadius: '4px',
+                cursor: 'grab',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                overflow: 'visible'
+              }}
+              whileHover={{ scaleY: 1.2, opacity: 1, zIndex: 10 }}
+              whileTap={{ cursor: 'grabbing' }}
+              initial={{ opacity: 0.85 }}
+            >
+              {/* Manejador izquierdo (Resize) */}
+              <motion.div 
+                drag="x"
+                dragMomentum={false}
+                onDragEnd={(_, info) => redimensionarTarea(tarea, info.offset.x, 'start')}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-2 h-full cursor-ew-resize hover:bg-black/20 flex items-center justify-center group/h"
+                title="Ajustar inicio"
+              >
+                <div className="w-[1px] h-2 bg-white/40 group-hover/h:bg-white transition-colors" />
+              </motion.div>
+              
+              {/* Manejador derecho (Resize) */}
+              <motion.div 
+                drag="x"
+                dragMomentum={false}
+                onDragEnd={(_, info) => redimensionarTarea(tarea, info.offset.x, 'end')}
+                onPointerDown={(e) => e.stopPropagation()}
+                className="w-2 h-full cursor-ew-resize hover:bg-black/20 flex items-center justify-center group/h"
+                title="Ajustar fin"
+              >
+                <div className="w-[1px] h-2 bg-white/40 group-hover/h:bg-white transition-colors" />
+              </motion.div>
+            </motion.div>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="bg-white border border-black/[0.08] rounded-sm overflow-hidden flex flex-col h-full">
-      {/* Top Header con Controles de Navegación */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-black/[0.1] bg-white z-30">
+    <div className="bg-white border border-black/[0.08] rounded-sm flex flex-col h-full font-mono">
+      {/* Header estático */}
+      <div className="flex items-center justify-between px-6 py-3 border-b border-black/[0.1] bg-white z-50">
         <div className="flex items-center gap-4">
           <div className="w-2 h-2 rounded-full bg-[#A44A3F] animate-pulse" />
-          <h2 className="font-mono text-[13px] tracking-[0.2em] uppercase font-bold text-[#333]">
+          <h2 className="text-[13px] tracking-[0.2em] uppercase font-bold text-[#333]">
             Planificación: <span className="text-[#A44A3F]">{mesLabel}</span>
           </h2>
         </div>
         
         <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-black/[0.05]">
-          <button 
-            onClick={prevMes} 
-            className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-[#6B7280] hover:text-[#A44A3F]"
-            title="Mes anterior"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m15 18-6-6 6-6"/>
-            </svg>
+          <button onClick={() => navegarMes('prev')} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-[#6B7280] hover:text-[#A44A3F]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
           </button>
-          
-          <div className="font-mono text-[11px] tracking-[0.1em] uppercase text-[#374151] font-bold px-4 min-w-[140px] text-center">
-            {mesLabel}
-          </div>
-          
-          <button 
-            onClick={nextMes} 
-            className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-[#6B7280] hover:text-[#A44A3F]"
-            title="Mes siguiente"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m9 18 6-6-6-6"/>
-            </svg>
+          <div className="text-[11px] tracking-[0.1em] uppercase text-[#374151] font-bold px-4 min-w-[140px] text-center">{mesLabel}</div>
+          <button onClick={() => navegarMes('next')} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-[#6B7280] hover:text-[#A44A3F]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Columnas fijas (Tareas y Encargados) */}
-        <div style={{ width: COL_TAREA + COL_ENCARGADO, flexShrink: 0 }} className="border-r border-black/[0.08] flex flex-col bg-white z-10 shadow-[4px_0_10px_-5px_rgba(0,0,0,0.05)]">
-          {/* Header fijo */}
-          <div style={{ height: ROW_H }} className="flex border-b border-black/[0.1] bg-gray-50/50">
-            <div style={{ width: COL_TAREA }} className="px-4 flex items-center font-mono text-[11px] tracking-[0.2em] uppercase text-[#6B7280] border-r border-black/[0.06]">
-              Tarea
-            </div>
-            <div style={{ width: COL_ENCARGADO }} className="px-4 flex items-center font-mono text-[11px] tracking-[0.2em] uppercase text-[#6B7280]">
-              Encargado
-            </div>
-          </div>
+      {/* Area de scroll principal */}
+      <div className="flex-1 overflow-auto relative">
+        <div style={{ minWidth: (config.colTarea + config.colEncargado) + (totalDays * config.minColWidth) }}>
           
-          {/* Filas fijas */}
-          <div className="flex-1 overflow-y-auto hidden-scrollbar">
-            {tareas.length === 0 ? (
-              <div style={{ height: ROW_H }} className="flex items-center justify-center px-4">
-                <p className="font-mono text-[11px] tracking-[0.1em] uppercase text-[#8C8076]">
-                  No hay tareas
-                </p>
-              </div>
-            ) : (
-              tareas.map(tarea => (
+          {/* Header de la tabla */}
+          <div className="sticky top-0 z-40 flex border-b border-black/[0.1] bg-gray-50/80 backdrop-blur-sm">
+            <div className="sticky left-0 z-50 flex bg-gray-50 border-r border-black/[0.08]" style={{ width: config.colTarea + config.colEncargado, height: config.rowHeight }}>
+              <div style={{ width: config.colTarea }} className="px-6 flex items-center text-[10px] tracking-[0.2em] uppercase text-[#6B7280] border-r border-black/[0.06]">Tarea</div>
+              <div style={{ width: config.colEncargado }} className="px-4 flex items-center text-[10px] tracking-[0.2em] uppercase text-[#6B7280]">Encargado</div>
+            </div>
+            
+            <div className="flex-1 flex overflow-hidden">
+              {dias.map(dia => (
                 <div 
-                  key={tarea.id} 
-                  onClick={() => onTareaClick(tarea)}
-                  style={{ height: ROW_H }} 
-                  className="flex border-b border-black/[0.04] hover:bg-[#A44A3F]/[0.02] cursor-pointer transition-colors group"
+                  key={`h-${dia.toISOString()}`}
+                  style={{ width: `${100 / totalDays}%`, minWidth: config.minColWidth }}
+                  className={`flex flex-col items-center justify-center border-r border-black/[0.05] py-2 ${isToday(dia) ? 'bg-[#A44A3F]/[0.05]' : ''}`}
                 >
-                  <div style={{ width: COL_TAREA }} className="px-4 flex items-center gap-2 border-r border-black/[0.06] overflow-hidden">
-                    <span className="font-mono text-[13px] text-[#333] truncate flex-1 group-hover:text-[#A44A3F] transition-colors">
-                      {tarea.titulo}
-                    </span>
-                    {tarea.prioridad && (
-                      <span className={`font-mono text-[9px] px-1.5 py-0.5 rounded-xs uppercase font-bold shrink-0 ${
-                        tarea.prioridad === 'ALTA' ? 'bg-red-50 text-red-600' :
-                        tarea.prioridad === 'MEDIA' ? 'bg-orange-50 text-orange-600' :
-                        'bg-blue-50 text-blue-600'
-                      }`}>
-                        {tarea.prioridad}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ width: COL_ENCARGADO }} className="px-4 flex items-center overflow-hidden">
-                    {tarea.manoDeObra?.[0]?.encargado ? (
-                      <span className="font-mono text-[13px] text-[#6B7280] truncate">
-                        {tarea.manoDeObra[0].encargado.nombre} {tarea.manoDeObra[0].encargado.apellido}
-                      </span>
-                    ) : (
-                      <span className="font-mono text-[10px] text-[#ccc] uppercase tracking-wider">
-                        Sin asignar
-                      </span>
-                    )}
-                  </div>
+                  <span className={`text-[9px] uppercase leading-none mb-1 ${isToday(dia) ? 'text-[#A44A3F] font-bold' : 'text-[#9CA3AF]'}`}>{format(dia, 'EEE', { locale: es }).slice(0,1)}</span>
+                  <span className={`text-[11px] leading-none ${isToday(dia) ? 'text-[#A44A3F] font-bold' : 'text-[#4B5563]'}`}>{format(dia, 'd')}</span>
                 </div>
-              ))
+              ))}
+            </div>
+          </div>
+
+          {/* Dnd Context */}
+          <DndContext 
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            {/* Tareas Programadas */}
+            {tareasConFecha.length > 0 && (
+              <>
+                <div className="sticky left-0 z-30 bg-[#fefaf9] px-4 py-1.5 border-b border-black/[0.06] text-[9px] uppercase tracking-[0.2em] font-bold text-[#A44A3F]">
+                   Tareas Programadas ({tareasConFecha.length})
+                </div>
+                <SortableContext items={tareasConFecha.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
+                  {tareasConFecha.map(tarea => <SortableRow key={tarea.id} tarea={tarea} />)}
+                </SortableContext>
+              </>
             )}
-          </div>
-        </div>
 
-        {/* Columna scrolleable (Calendario) */}
-        <div className="flex-1 overflow-x-auto overflow-y-auto relative bg-[#F9FAFB]/20">
-          <div style={{ minWidth: minTotalW, width: '100%', position: 'relative' }}>
-            {/* Header calendario (Solo días) */}
-            <div style={{ height: ROW_H }} className="border-b border-black/[0.1] flex flex-col sticky top-0 bg-white z-20">
-              <div className="flex h-full">
-                {dias.map(dia => (
-                  <div 
-                    key={`col-${dia.toISOString()}`} 
-                    style={{ width: `${100 / totalDays}%`, flexShrink: 0 }} 
-                    className={`flex flex-col items-center justify-center border-r last:border-r-0 border-black/[0.05] ${isToday(dia) ? 'bg-[#A44A3F]/[0.05]' : ''}`}
-                  >
-                    <span className={`font-mono text-[10px] uppercase leading-none mb-1 ${isToday(dia) ? 'text-[#A44A3F] font-bold' : 'text-[#9CA3AF]'}`}>
-                      {format(dia, 'EEE', { locale: es }).slice(0, 1)}
-                    </span>
-                    <span className={`font-mono text-[12px] leading-none ${isToday(dia) ? 'text-[#A44A3F] font-bold' : 'text-[#4B5563]'}`}>
-                      {format(dia, 'd')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Tareas Sin Programar */}
+            {tareasSinFecha.length > 0 && (
+              <>
+                <div className="sticky left-0 z-30 bg-[#f9fbfb] px-4 py-1.5 border-b border-black/[0.06] text-[9px] uppercase tracking-[0.2em] font-bold text-gray-500">
+                   Tareas Sin Programar ({tareasSinFecha.length})
+                </div>
+                <SortableContext items={tareasSinFecha.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
+                  {tareasSinFecha.map(tarea => <SortableRow key={tarea.id} tarea={tarea} />)}
+                </SortableContext>
+              </>
+            )}
 
-            {/* Filas del Gantt y Grid de fondo */}
-            <div className="relative">
-              {/* Grid Lines de fondo */}
-              <div className="absolute inset-0 pointer-events-none flex" style={{ height: (tareas.length || 1) * ROW_H }}>
-                {dias.map(dia => (
-                  <div 
-                    key={`grid-${dia.toISOString()}`}
-                    style={{ width: `${100 / totalDays}%`, flexShrink: 0 }}
-                    className={`border-r last:border-r-0 border-black/[0.03] ${isToday(dia) ? 'bg-[#A44A3F]/[0.02]' : ''}`}
-                  />
-                ))}
-              </div>
-
-              {/* Tareas */}
-              {tareas.length === 0 ? (
-                <div style={{ height: ROW_H }} />
-              ) : (
-                tareas.map(tarea => {
-                  const bar = getBarProps(tarea)
-                  return (
-                    <div 
-                      key={tarea.id} 
-                      onClick={() => onTareaClick(tarea)}
-                      style={{ height: ROW_H }} 
-                      className="flex items-center border-b border-black/[0.04] hover:bg-[#A44A3F]/[0.02] cursor-pointer transition-colors relative"
-                    >
-                      <div className="w-full relative px-[2px] h-[14px]">
-                        {bar && (
-                          <div 
-                            style={{ 
-                              position: 'absolute', 
-                              left: `${bar.left}%`, 
-                              width: `${bar.width}%`, 
-                              height: 14, 
-                              background: ESTADO_COLOR[tarea.estado ?? 'PENDIENTE'] ?? '#67E8F9',
-                              borderRadius: '4px',
-                              opacity: 0.9,
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
-                            }}
-                            className="group-hover:scale-y-110"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          </div>
+            <DragOverlay>
+              {activeId ? (
+                <div className="bg-white shadow-xl border border-[#A44A3F]/20 opacity-90 p-4 rounded-md">
+                   <span className="text-[13px] font-bold text-[#A44A3F] font-mono">{tareas.find(t => String(t.id) === activeId)?.titulo}</span>
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="border-t border-black/[0.05] px-4 py-4 bg-white flex items-center justify-between">
-        <button onClick={onNuevaTarea} className="flex items-center gap-2 text-[#A44A3F] hover:text-[#8c3f36] transition-colors group">
-          <div className="w-5 h-5 rounded-full border border-current flex items-center justify-center group-hover:scale-110 transition-transform">
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <line x1="5" y1="2" x2="5" y2="8" />
-              <line x1="2" y1="5" x2="8" y2="5" />
-            </svg>
+      <div className="border-t border-black/[0.05] px-6 py-4 bg-white flex items-center justify-between">
+        <button onClick={onNuevaTarea} className="flex items-center gap-3 text-[#A44A3F] hover:text-[#8c3f36] transition-all group">
+          <div className="w-6 h-6 rounded-full border-2 border-current flex items-center justify-center group-hover:scale-110">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><line x1="6" y1="2" x2="6" y2="10" /><line x1="2" y1="6" x2="10" y2="6" /></svg>
           </div>
-          <span className="font-mono text-[12px] tracking-[0.1em] uppercase font-bold">
-            Nueva Tarea
-          </span>
+          <span className="text-[12px] tracking-[0.1em] uppercase font-bold">Nueva Tarea</span>
         </button>
         
-        <div className="flex gap-4">
+        <div className="flex gap-6">
           {Object.entries(ESTADO_COLOR).map(([estado, color]) => (
             <div key={estado} className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
-              <span className="font-mono text-[10px] uppercase text-gray-500 tracking-wider">
-                {estado.replace('_', ' ')}
-              </span>
+              <div className="w-2 h-2 rounded-full" style={{ background: color }} />
+              <span className="text-[9px] uppercase text-gray-400 tracking-widest">{estado}</span>
             </div>
           ))}
         </div>
