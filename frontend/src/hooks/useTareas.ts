@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getTareasByObra, createTarea, updateTarea, deleteTarea } from '@/api/tareas'
+import { getTareasByObra, createTarea, updateTarea, deleteTarea, bulkUpdateOrder } from '@/api/tareas'
 import type { Tarea } from '@/types'
 import type { CreateTareaInput, UpdateTareaInput } from '@/types/inputs'
 
@@ -60,8 +60,23 @@ export function useTareas(obraId: number) {
     }
   }
 
-  function reordenar(nuevasTareas: Tarea[]) {
+
+  async function reordenar(nuevasTareas: Tarea[]) {
     setTareas(nuevasTareas)
+    
+    // Persist to backend
+    const payload = nuevasTareas.map((t, index) => ({
+      id: t.id,
+      orden: index
+    }))
+    
+    try {
+      await bulkUpdateOrder(payload)
+    } catch (err) {
+      console.error('Error persisting order:', err)
+      setError('Error al guardar el nuevo orden')
+
+    }
   }
 
   return { tareas, loading, actionLoading, error, crear, editar, eliminar, reordenar }

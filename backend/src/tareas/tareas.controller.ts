@@ -36,4 +36,13 @@ export class TareasController {
   remove(@Param('id') id: string, @CurrentUser() user: UserPayload) {
     return this.tareasService.remove(+id, user.userId);
   }
+
+  @Patch('reorder')
+  async reorder(@Body() body: { orden: { id: number; orden: number }[] }, @CurrentUser() user: UserPayload) {
+    try {
+      await this.tareasService.reorder(body.orden, user.userId);
+    } catch (error) {
+      throw new Error('Error al reordenar las tareas');
+    }
+  }
 }

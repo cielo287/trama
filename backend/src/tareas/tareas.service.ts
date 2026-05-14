@@ -42,9 +42,14 @@ export class TareasService {
       }
     }
 
+    const totalTareas = await this.prisma.tarea.count({
+      where: { obraId: createTareaDto.obraId }
+    });
+
     return this.prisma.tarea.create({
       data: {
         ...createTareaDto,
+        ordenEjecucion: totalTareas + 1,
         fechaInicio: toDate(createTareaDto.fechaInicio),
         fechaFin: toDate(createTareaDto.fechaFin),
       },
@@ -151,5 +156,34 @@ async update(id: number, updateTareaDto: UpdateTareaDto, usuarioId: number) {
     return this.prisma.tarea.delete({
       where: { id },
     });
+}
+
+async reorder(
+  orden: { id: number; orden: number }[],
+  usuarioId: number
+) {
+  const ids = orden.map(o => o.id);
+
+  const tareas = await this.prisma.tarea.findMany({
+    where: {
+      id: { in: ids },
+      obra: { usuarioId }
+    }
+  });
+
+  if (tareas.length !== ids.length) {
+    throw new NotFoundException(
+      'Algunas tareas no existen o no pertenecen al usuario'
+    );
   }
+
+  await this.prisma.$transaction(
+    orden.map(o =>
+      this.prisma.tarea.update({
+        where: { id: o.id },
+        data: { ordenEjecucion: o.orden }
+      })
+    )
+  );
+}
 }

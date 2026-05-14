@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { 
   format, 
@@ -76,7 +77,7 @@ export default function Gantt({ tareas, onUpdateTareas, onTareaClick, onNuevaTar
     reordenarTareas(active.id as string, over.id as string)
   }
 
-  const SortableRow = ({ tarea }: { tarea: Tarea }) => {
+  const SortableRow = ({ tarea, ...props }: { tarea: Tarea, [key: string]: any }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(tarea.id) })
     const bar = getBarProps(tarea)
     
@@ -99,7 +100,7 @@ export default function Gantt({ tareas, onUpdateTareas, onTareaClick, onNuevaTar
           style={{ width: config.colTarea + config.colEncargado, height: config.rowHeight }}
         >
           <div {...attributes} {...listeners} className="p-2 cursor-grab active:cursor-grabbing text-gray-300 hover:text-[#A44A3F] transition-colors flex items-center">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="lucide lucide-grip-vertical"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
           </div>
           
           <div onClick={() => onTareaClick(tarea)} style={{ width: config.colTarea - 28 }} className="px-2 flex items-center gap-2 border-r border-black/[0.06] overflow-hidden cursor-pointer">

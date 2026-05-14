@@ -61,6 +61,9 @@ async create(createObraDto: CreateObraDto, usuarioId: number) {
   
     return this.prisma.tarea.findMany({
       where: { obraId },
+      orderBy: { ordenEjecucion: 'asc' 
+        
+      },
       include: {
         tareaPadre: true,
         subtareas: true,
