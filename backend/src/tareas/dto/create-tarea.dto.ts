@@ -25,10 +25,6 @@ export class CreateTareaDto {
   @IsEnum(PrioridadTarea)
   prioridad: PrioridadTarea;
 
-  @IsOptional()
-  @IsEnum(EstadoTarea)
-  estado: EstadoTarea;
-
   @IsInt()
   obraId: number;
 

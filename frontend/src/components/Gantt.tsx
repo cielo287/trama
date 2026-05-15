@@ -28,9 +28,10 @@ import { CSS } from '@dnd-kit/utilities'
 import { useGantt } from '../hooks/useGantt'
 
 const ESTADO_COLOR: Record<string, string> = {
-  PENDIENTE: '#67E8F9',
-  EN_PROCESO: '#84CC16',
-  FINALIZADA: '#F59E0B',
+  PENDIENTE: '#CDC5C5',
+  EN_PROCESO: '#16F7E8',
+  ATRASADA: '#F99783',
+  FINALIZADA: '#84CC16',
 }
 
 interface Props {

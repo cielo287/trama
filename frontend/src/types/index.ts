@@ -35,7 +35,7 @@ export interface Tarea {
   updatedAt: string
 }
 
-export type EstadoTarea = 'PENDIENTE' | 'EN_PROCESO' | 'FINALIZADA'
+export type EstadoTarea = 'PENDIENTE' | 'ATRASADA' | 'EN_PROCESO' | 'FINALIZADA'
 
 export interface Material {
   id: number

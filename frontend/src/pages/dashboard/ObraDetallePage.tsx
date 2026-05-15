@@ -1,11 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { getObras } from '@/api/obras'
-import type { Obra, Tarea } from '@/types'
+import type { Obra, Tarea, } from '@/types'
 import Header from '@/components/Header'
 import { useTareas } from '@/hooks/useTareas'
 import Gantt from '@/components/Gantt'
 import TareaPanel from '@/components/TareaPanel'
+import { cambiarEstadoTarea } from '@/api/tareas'
+
 
 type Seccion = 'tareas' | 'cronograma' | 'presupuesto' | 'metricas' | 'archivos'
 
@@ -15,7 +17,7 @@ export default function ObraPage() {
   const [obra, setObra] = useState<Obra | null>(null)
   const [loading, setLoading] = useState(true)
   const [seccion, setSeccion] = useState<Seccion>('tareas')
-  const { tareas, loading: loadingTareas, actionLoading, crear, editar, eliminar, reordenar } = useTareas(Number(id))
+  const { tareas, loading: loadingTareas, crear, editar, eliminar, reordenar, creating, updating } = useTareas(Number(id))
 
   const [panelAbierto, setPanelAbierto] = useState(false)
   const [tareaSeleccionada, setTareaSeleccionada] = useState<Tarea | null>(null)
@@ -138,7 +140,8 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         onCreate={crear}
         onUpdate={editar}
         onDelete={eliminar}
-        loading={actionLoading}
+        onCambiarEstado={cambiarEstadoTarea}
+        loading={tareaSeleccionada ? updating : creating}
       />
     </div>
   )

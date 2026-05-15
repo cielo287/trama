@@ -2,6 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreateTareaDto } from './dto/create-tarea.dto';
 import { UpdateTareaDto } from './dto/update-tarea.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { EstadoTarea } from './enums/tareas.enums';
+import { TRANSICIONES_VALIDAS } from './state/state';
 
 function toDate(date?: string | Date | null): Date | undefined {
   if (!date) return undefined
@@ -186,4 +188,81 @@ async reorder(
     )
   );
 }
+
+async cambiarEstado(tareaId: number, nuevoEstado: EstadoTarea, usuarioId: number, notas?: string) {
+    // 1. Buscamos la tarea con sus subtareas
+  const tarea = await this.prisma.tarea.findFirst({
+    where: { 
+      id: tareaId,
+      obra: {
+        usuarioId
+      }
+    },
+    include: { 
+      subtareas: {
+        select: { estado: true }
+      }
+    },
+  });
+
+    if (!tarea) {
+      throw new NotFoundException(`La tarea con ID ${tareaId} no existe.`);
+    }
+
+    const estadoActual = tarea.estado as EstadoTarea;
+
+    // 2. Validamos la transición con nuestra máquina de estados
+    const permitidos = TRANSICIONES_VALIDAS[estadoActual];
+    if (!permitidos.includes(nuevoEstado)) {
+      throw new BadRequestException(
+        `No se puede cambiar el estado de ${estadoActual} a ${nuevoEstado}.`,
+      );
+    }
+
+    // 3. Regla de negocio: No se puede finalizar si tiene subtareas abiertas
+    if (nuevoEstado === EstadoTarea.FINALIZADA) {
+      const tieneHijosAbiertos = tarea.subtareas.some(
+        (sub) => sub.estado !== EstadoTarea.FINALIZADA,
+      );
+      if (tieneHijosAbiertos) {
+        throw new BadRequestException(
+          'No podés finalizar esta tarea porque tiene subtareas pendientes de terminar.',
+        );
+      }
+    }
+
+    // 4. Usamos una transacción de Prisma para asegurar que se actualice la tarea
+    // y se cree el historial en un solo bloque (si uno falla, no se hace nada)
+    return this.prisma.$transaction(async (tx) => {
+      const ahora = new Date();
+
+      // A. Cerramos el registro anterior en el historial si existía alguno abierto
+      await tx.historialEstado.updateMany({
+        where: {
+          tareaId: tareaId,
+          fechaFin: null,
+        },
+        data: {
+          fechaFin: ahora,
+        },
+      });
+
+      // B. Creamos el nuevo registro en el historial de estados
+      await tx.historialEstado.create({
+        data: {
+          estado: nuevoEstado,
+          fechaInicio: ahora,
+          notas: notas || null,
+          tareaId: tareaId,
+        },
+      });
+
+      // C. Actualizamos el estado físico de la tarea
+      return tx.tarea.update({
+        where: { id: tareaId },
+        data: { estado: nuevoEstado },
+      });
+    });
+  }
+
 }

@@ -24,11 +24,16 @@ export const updateTarea = (id: number, data: UpdateTareaInput) =>
 export const deleteTarea = (id: number) =>
   apiFetch(`/api/tareas/${id}`, { method: 'DELETE' })
   
-export async function bulkUpdateOrder(orden: { id: number; orden: number }[]): Promise<void> {
-  const response = await fetch(`/api/tareas/reorder`, {
+export const bulkUpdateOrder = (orden: { id: number; orden: number }[]) =>
+  apiFetch<void>('/api/tareas/reorder', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ orden }),
-  });
-  if (!response.ok) throw new Error('Error al reordenar tareas');
-}
+  })
+
+export const cambiarEstadoTarea = (id: number, nuevoEstado: string, notas?: string) =>
+  apiFetch<Tarea>(`/api/tareas/${id}/cambiar-estado`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nuevoEstado, notas }),
+  })

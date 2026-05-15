@@ -6,6 +6,8 @@ import { CurrentUser } from '../auth/decorators/decorators/current-user.decorato
 import type { UserPayload } from '../auth/interfaces/user-payload.interface';
 import { JwtAuthGuard } from '../auth/guards/guards/jwt-auth.guard';
 import { use } from 'passport';
+import { EstadoTarea } from './enums/tareas.enums';
+import { CambioEstadoTareaDto } from './dto/cambioEstadoTareaDto';
 
 @Controller('tareas')
 @UseGuards(JwtAuthGuard)
@@ -44,5 +46,15 @@ export class TareasController {
     } catch (error) {
       throw new Error('Error al reordenar las tareas');
     }
+  }
+
+  @Patch(':id/cambiar-estado')
+  async cambiarEstado(
+    @Param('id') id: string,
+    @Body() cambioEstadoDto: CambioEstadoTareaDto,
+    @CurrentUser() user: UserPayload
+  ) {
+    const { nuevoEstado, notas } = cambioEstadoDto;
+    return this.tareasService.cambiarEstado(+id, nuevoEstado, user.userId, notas);
   }
 }

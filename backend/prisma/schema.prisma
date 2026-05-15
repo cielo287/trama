@@ -47,28 +47,49 @@ model Obra {
 }
 
 model Tarea {
-  id Int @id @default(autoincrement())
-  titulo String
-  descripcion String?
-  fechaInicio DateTime?
-  fechaFin DateTime?
-  ordenEjecucion Int?
-  prioridad String?
-  estado String?
-  imagenes ImagenTarea[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              Int           @id @default(autoincrement())
+  titulo          String
+  descripcion     String?
+  
+  // --- Fechas de Planificación ---
+  fechaInicio     DateTime?     // Cuándo se PLANIFICA arrancar
+  fechaFin        DateTime?     // Cuándo se PLANIFICA terminar
+  
+  ordenEjecucion  Int?
+  prioridad       String?
+  
+  // --- Control de Estado ---
+  // Valores esperados: "PENDIENTE", "EN_CURSO", "ATRASADA", "FINALIZADA"
+  estado          String        @default("PENDIENTE") 
+  
+  // --- Relaciones existentes ---
+  imagenes        ImagenTarea[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
-  obraId Int
-  obra Obra @relation(fields: [obraId], references: [id])
+  obraId          Int
+  obra            Obra          @relation(fields: [obraId], references: [id])
 
-  tareaPadreId Int?
-  tareaPadre Tarea? @relation("TareaHijos", fields: [tareaPadreId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  subtareas Tarea[] @relation("TareaHijos")
+  tareaPadreId    Int?
+  tareaPadre      Tarea?        @relation("TareaHijos", fields: [tareaPadreId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subtareas       Tarea[]       @relation("TareaHijos")
 
   detallesMaterial DetalleMaterial[]
-  manoDeObra ManoDeObra[]
+  manoDeObra      ManoDeObra[]
+  historialEstados HistorialEstado[]
+}
 
+
+
+model HistorialEstado {
+  id          Int      @id @default(autoincrement())
+  estado      String   
+  fechaInicio DateTime @default(now()) // Cuándo entró en este estado
+  fechaFin    DateTime? // Cuándo cambió a otro estado
+  notas       String?  // Ej: "Faltaron materiales", "Lluvia"
+
+  tareaId     Int
+  tarea       Tarea    @relation(fields: [tareaId], references: [id], onDelete: Cascade)
 }
 
 model ImagenTarea {

@@ -5,9 +5,7 @@ export interface CreateTareaInput {
   descripcion?: string
   fechaInicio?: string
   fechaFin?: string
-  ordenEjecucion: number
   prioridad: PrioridadTarea
-  estado: EstadoTarea
   obraId: number
   tareaPadreId?: number
 }

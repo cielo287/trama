@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getTareasByObra, createTarea, updateTarea, deleteTarea, bulkUpdateOrder } from '@/api/tareas'
-import type { Tarea } from '@/types'
+import { getTareasByObra, createTarea, updateTarea, deleteTarea, bulkUpdateOrder, cambiarEstadoTarea } from '@/api/tareas'
+import type { Tarea, EstadoTarea } from '@/types'
 import type { CreateTareaInput, UpdateTareaInput } from '@/types/inputs'
 
 export function useTareas(obraId: number) {
@@ -8,6 +8,8 @@ export function useTareas(obraId: number) {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [creating, setCreating] = useState(false)
+  const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -19,28 +21,44 @@ export function useTareas(obraId: number) {
   }, [obraId])
 
   async function crear(data: CreateTareaInput) {
-    if (actionLoading) return
-    setActionLoading(true)
+    if (creating) return
+    setCreating(true)
     setError(null)
     try {
       const nueva = await createTarea(data)
       setTareas(prev => [...prev, nueva])
-    } catch {
+    } catch (e) {
+      console.error(e)
       setError('Error al crear la tarea')
-    } finally {
-      setActionLoading(false)
+      throw e
     }
   }
 
   async function editar(id: number, data: UpdateTareaInput) {
-    if (actionLoading) return
-    setActionLoading(true)
+    if (updating) return
+    setUpdating(true)
     setError(null)
     try {
       const actualizada = await updateTarea(id, data)
       setTareas(prev => prev.map(t => t.id === id ? actualizada : t))
-    } catch {
+    } catch (e) {
+      console.error(e)
       setError('Error al editar la tarea')
+      throw e
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  async function cambiarEstado(id: number, nuevoEstado: EstadoTarea, notas?: string) {
+    if (actionLoading) return
+    setActionLoading(true)
+    setError(null)
+    try {
+      const actualizada = await cambiarEstadoTarea(id, nuevoEstado, notas)
+      setTareas(prev => prev.map(t => t.id === id ? actualizada : t))
+    } catch {
+      setError('Error al cambiar el estado de la tarea')
     } finally {
       setActionLoading(false)
     }
@@ -79,5 +97,5 @@ export function useTareas(obraId: number) {
     }
   }
 
-  return { tareas, loading, actionLoading, error, crear, editar, eliminar, reordenar }
+  return { tareas, loading, actionLoading, error, creating,  updating, crear, editar, eliminar, reordenar, cambiarEstado }
 }
