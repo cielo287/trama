@@ -10,10 +10,12 @@ interface UseTareaPanelProps {
   onCreate: (data: CreateTareaInput) => Promise<void>
   onUpdate: (id: number, data: UpdateTareaInput) => Promise<void>
   onCambiarEstado?: (id: number, nuevoEstado: EstadoTarea, notas?: string) => Promise<Tarea | void>
+  onNext?: () => void
+  onPrevious?: () => void // 💡 Cambiado de onPrevious a onPrev para consistencia
 }
 
 export function useTareaPanel({
-  tarea, obraId, open, onClose, onCreate, onUpdate, onCambiarEstado
+  tarea, obraId, open, onClose, onCreate, onUpdate, onCambiarEstado, onNext, onPrevious
 }: UseTareaPanelProps) {
   const isNew = !tarea
   const [isEditing, setIsEditing] = useState(isNew)
@@ -45,7 +47,6 @@ export function useTareaPanel({
       setIsEditing(true)
     }
   }, [tarea, open])
-
 
   const handleSubmit = useCallback(async () => {
     if (!titulo.trim() || !isEditing) return
@@ -85,11 +86,36 @@ export function useTareaPanel({
         || e.target instanceof HTMLTextAreaElement
         || e.target instanceof HTMLSelectElement
 
-      if (!isInput && (e.key === 'e' || e.key === 'E')) {
-        e.preventDefault()
-        setIsEditing(true)
+      // 1. Atajos generales (Modo Lectura / No enfocado en inputs)
+      if (!isInput) {
+        if ((e.key === 'e' || e.key === 'E')) {
+          e.preventDefault()
+          setIsEditing(true)
+        }
+        
+        // 💡 Navegación con flechas cuando NO se está editando un input
+        if (e.key === 'ArrowRight' && onNext) {
+          e.preventDefault()
+          onNext()
+        }
+        if (e.key === 'ArrowLeft' && onPrevious) {
+          e.preventDefault()
+          onPrevious()
+        }
+
+        if (e.key === 'ArrowUp' && onPrevious) {
+          e.preventDefault()
+          onPrevious()
+        }
+
+        if (e.key === 'ArrowDown' && onNext) {
+          e.preventDefault()
+          onNext()
+        }
+
       }
 
+      // 2. Atajos exclusivos del Modo Edición
       if (e.key === 'Enter' && isEditing && (e.ctrlKey || e.metaKey || !(e.target instanceof HTMLTextAreaElement))) {
         handleSubmit()
       }
@@ -97,7 +123,8 @@ export function useTareaPanel({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [open, onClose, isEditing, handleSubmit])
+    // 💡 Añadimos onNext y onPrevious a las dependencias del efecto
+  }, [open, onClose, isEditing, handleSubmit, onNext, onPrevious])
 
   return {
     isNew,

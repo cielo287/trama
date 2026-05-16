@@ -15,11 +15,13 @@ interface Props {
   onDelete: (id: number) => Promise<void>
   loading: boolean
   onCambiarEstado?: (id: number, nuevoEstado: EstadoTarea, notas?: string) => Promise<Tarea | void>
+  onNext: () => void
+  onPrevious: () => void
 }
 
 export default function TareaPanel({
   open, tarea, obraId, totalTareas,
-  onClose, onCreate, onUpdate, onDelete, loading, onCambiarEstado
+  onClose, onCreate, onUpdate, onDelete, loading, onCambiarEstado, onNext, onPrevious
 }: Props) {
  
  
@@ -32,8 +34,20 @@ const {
   estado, setEstado,
   prioridad, setPrioridad,
   handleSubmit,
-} = useTareaPanel({ tarea, obraId, open, onClose, onCreate, onUpdate, onCambiarEstado })
+} = useTareaPanel({ tarea, obraId, open, onClose, onCreate, onUpdate, onCambiarEstado, onNext, onPrevious })   
 
+const PRIORIDAD_COLOR: Record<PrioridadTarea, string> = {
+  ALTA: '#EF4444',     // rojo
+  MEDIA: '#F59E0B',    // amarillo
+  BAJA: '#84CC16',     // verde
+}
+
+const ESTADO_COLOR: Record<EstadoTarea, string> = {
+  PENDIENTE: '#67E8F9',
+  ATRASADA: '#EF4444',
+  EN_PROCESO: '#84CC16',
+  FINALIZADA: '#F59E0B',
+}
 
 
 
@@ -75,10 +89,14 @@ const {
               <div className="flex items-center gap-4">
                 {tarea && !isEditing && (
                   <div className="flex gap-1">
-                    <button  className="p-1.5 hover:bg-black/5 rounded text-gray-400 hover:text-[#333] transition-colors">
+                    <button 
+                      onClick={onPrevious}
+                      className="p-1.5 hover:bg-black/5 rounded text-gray-400 hover:text-[#333] transition-colors">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
-                    <button  className="p-1.5 hover:bg-black/5 rounded text-gray-400 hover:text-[#333] transition-colors">
+                    <button 
+                      onClick={onNext}
+                      className="p-1.5 hover:bg-black/5 rounded text-gray-400 hover:text-[#333] transition-colors">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6 6-6"/></svg>
                     </button>
                   </div>
@@ -207,14 +225,7 @@ const {
   <div className="flex items-center gap-2 py-1">
     <div
       className="w-2 h-2 rounded-full"
-      style={{
-        background: {
-          PENDIENTE: '#67E8F9',
-          ATRASADA: '#EF4444',
-          EN_PROCESO: '#84CC16',
-          FINALIZADA: '#F59E0B',
-        }[estado],
-      }}
+      style={{ background: ESTADO_COLOR[estado] }}
     />
     <span className="text-[11px] font-bold uppercase tracking-widest">
       {estado}
@@ -237,9 +248,15 @@ const {
                       <option value="BAJA">BAJA</option>
                     </select>
                   ) : (
-                    <div className="text-[11px] font-bold uppercase tracking-widest py-1 border-b border-black/[0.05] inline-block">
-                      {prioridad}
-                    </div>
+<div className="flex items-center gap-2 py-1">
+  <div
+    className="w-2 h-2 rounded-full"
+    style={{ background: PRIORIDAD_COLOR[prioridad] }}
+  />
+  <span className="text-[11px] font-bold uppercase tracking-widest">
+    {prioridad}
+  </span>
+</div>
                   )}
                 </div>
               </div>

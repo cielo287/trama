@@ -31,6 +31,8 @@ export function useTareas(obraId: number) {
       console.error(e)
       setError('Error al crear la tarea')
       throw e
+    } finally {
+      setCreating(false)
     }
   }
 

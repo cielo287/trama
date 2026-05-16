@@ -21,7 +21,7 @@ export default function ObraPage() {
 
   const [panelAbierto, setPanelAbierto] = useState(false)
   const [tareaSeleccionada, setTareaSeleccionada] = useState<Tarea | null>(null)
-
+  const [tareaIndex, setTareaIndex] = useState<number | null>(null)
   useEffect(() => {
     getObras()
       .then(obras => {
@@ -39,14 +39,49 @@ export default function ObraPage() {
   }
 
   function abrirEditarTarea(tarea: Tarea) {
-    setTareaSeleccionada(tarea)
-    setPanelAbierto(true)
+  const index = tareas.findIndex(t => t.id === tarea.id)
+  setTareaIndex(index)
+  setTareaSeleccionada(tarea)
+  setPanelAbierto(true)
+}
+
+function irSiguiente() {
+  if (tareaIndex === null || tareas.length === 0) return
+  
+  const siguiente = tareaIndex + 1
+  
+  // 🔄 Si el siguiente índice supera el límite, volvemos a la primera (0)
+  if (siguiente >= tareas.length) {
+    setTareaIndex(0)
+    setTareaSeleccionada(tareas[0])
+  } else {
+    setTareaIndex(siguiente)
+    setTareaSeleccionada(tareas[siguiente])
   }
+}
+
+function irAnterior() {
+  if (tareaIndex === null || tareas.length === 0) return
+  
+  const anterior = tareaIndex - 1
+  
+  // 🔄 Si el anterior es menor a 0, saltamos a la última tarea (tareas.length - 1)
+  if (anterior < 0) {
+    const ultimoIndex = tareas.length - 1
+    setTareaIndex(ultimoIndex)
+    setTareaSeleccionada(tareas[ultimoIndex])
+  } else {
+    setTareaIndex(anterior)
+    setTareaSeleccionada(tareas[anterior])
+  }
+}
 
   function cerrarPanel() {
     setPanelAbierto(false)
     setTareaSeleccionada(null)
   }
+
+  
 
 function handleUpdateTareas(nuevasTareas: Tarea[]) {
   // Actualizamos estado local primero
@@ -142,6 +177,8 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         onDelete={eliminar}
         onCambiarEstado={cambiarEstadoTarea}
         loading={tareaSeleccionada ? updating : creating}
+        onNext={irSiguiente}
+        onPrevious={irAnterior}
       />
     </div>
   )
