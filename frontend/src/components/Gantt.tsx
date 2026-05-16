@@ -36,12 +36,13 @@ const ESTADO_COLOR: Record<string, string> = {
 
 interface Props {
   tareas: Tarea[]
+  selectedTareaId?: number | null
   onUpdateTareas: (nuevasTareas: Tarea[]) => void
   onTareaClick: (tarea: Tarea) => void
   onNuevaTarea: () => void
 }
 
-export default function Gantt({ tareas, onUpdateTareas, onTareaClick, onNuevaTarea }: Props) {
+export default function Gantt({ tareas, selectedTareaId, onUpdateTareas, onTareaClick, onNuevaTarea }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
   
   const {
@@ -81,6 +82,8 @@ export default function Gantt({ tareas, onUpdateTareas, onTareaClick, onNuevaTar
   const SortableRow = ({ tarea, ...props }: { tarea: Tarea, [key: string]: any }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(tarea.id) })
     const bar = getBarProps(tarea)
+
+    const isSelected = selectedTareaId === tarea.id
     
     const style = {
       transform: CSS.Transform.toString(transform),
@@ -93,11 +96,17 @@ export default function Gantt({ tareas, onUpdateTareas, onTareaClick, onNuevaTar
       <div 
         ref={setNodeRef} 
         style={style} 
-        className="flex border-b border-black/[0.04] bg-white group hover:bg-gray-50/50"
+        className = {`flex border-b border-black/[0.04] group transition-colors
+          ${isSelected
+            ? 'bg-[#A44A3F]/[0.08] border-l-2 border-l-[#A44A3F]'
+            : 'hover:bg-gray-50/50'
+          }`}
       >
         {/* Columnas Fijas (Sticky) */}
         <div 
-          className="sticky left-0 z-20 flex bg-white group-hover:bg-gray-50 border-r border-black/[0.08]" 
+          className={`sticky left-0 z-20 flex border-r border-black/[0.08] transition-colors
+            ${isSelected ? 'bg-[#fdf8f7]' : 'bg-white group-hover:bg-gray-50'              
+            }`}
           style={{ width: config.colTarea + config.colEncargado, height: config.rowHeight }}
         >
           <div {...attributes} {...listeners} className="p-2 cursor-grab active:cursor-grabbing text-gray-300 hover:text-[#A44A3F] transition-colors flex items-center">
@@ -105,9 +114,11 @@ export default function Gantt({ tareas, onUpdateTareas, onTareaClick, onNuevaTar
           </div>
           
           <div onClick={() => onTareaClick(tarea)} style={{ width: config.colTarea - 28 }} className="px-2 flex items-center gap-2 border-r border-black/[0.06] overflow-hidden cursor-pointer">
-            <span className="font-mono text-[13px] text-[#333] truncate flex-1 group-hover:text-[#A44A3F] transition-colors">
-              {tarea.titulo}
-            </span>
+          <span className={`font-mono text-[13px] truncate flex-1 transition-colors ${
+            isSelected ? 'text-[#A44A3F] font-bold' : 'text-[#333] group-hover:text-[#A44A3F]'
+            }`}>
+            {tarea.titulo}
+          </span>
           </div>
           
           <div style={{ width: config.colEncargado }} className="px-4 flex items-center overflow-hidden">
@@ -169,6 +180,7 @@ export default function Gantt({ tareas, onUpdateTareas, onTareaClick, onNuevaTar
                 alignItems: 'center',
                 overflow: 'visible'
               }}
+              animate= {{scaleY: isSelected ? 1.2 : 1 }}
               whileHover={{ scaleY: 1.2, opacity: 1, zIndex: 10 }}
               whileTap={{ cursor: 'grabbing' }}
               initial={{ opacity: 0.85 }}
@@ -231,7 +243,7 @@ export default function Gantt({ tareas, onUpdateTareas, onTareaClick, onNuevaTar
           
           {/* Header de la tabla */}
           <div className="sticky top-0 z-40 flex border-b border-black/[0.1] bg-gray-50/80 backdrop-blur-sm">
-            <div className="sticky left-0 z-50 flex bg-gray-50 border-r border-black/[0.08]" style={{ width: config.colTarea + config.colEncargado, height: config.rowHeight }}>
+            <div className="sticky left-0 z-50 flex bg-white border-r border-black/[0.08]" style={{ width: config.colTarea + config.colEncargado, height: config.rowHeight }}>
               <div style={{ width: config.colTarea }} className="px-6 flex items-center text-[10px] tracking-[0.2em] uppercase text-[#6B7280] border-r border-black/[0.06]">Tarea</div>
               <div style={{ width: config.colEncargado }} className="px-4 flex items-center text-[10px] tracking-[0.2em] uppercase text-[#6B7280]">Encargado</div>
             </div>

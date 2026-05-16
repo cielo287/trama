@@ -6,8 +6,7 @@ import Header from '@/components/Header'
 import { useTareas } from '@/hooks/useTareas'
 import Gantt from '@/components/Gantt'
 import TareaPanel from '@/components/TareaPanel'
-import { cambiarEstadoTarea } from '@/api/tareas'
-
+import Kanban from '@/components/Kanban'
 
 type Seccion = 'tareas' | 'cronograma' | 'presupuesto' | 'metricas' | 'archivos'
 
@@ -17,11 +16,12 @@ export default function ObraPage() {
   const [obra, setObra] = useState<Obra | null>(null)
   const [loading, setLoading] = useState(true)
   const [seccion, setSeccion] = useState<Seccion>('tareas')
-  const { tareas, loading: loadingTareas, crear, editar, eliminar, reordenar, creating, updating } = useTareas(Number(id))
+  const { tareas, loading: loadingTareas, crear, editar, eliminar, reordenar, cambiarEstado,creating, updating } = useTareas(Number(id))
 
   const [panelAbierto, setPanelAbierto] = useState(false)
   const [tareaSeleccionada, setTareaSeleccionada] = useState<Tarea | null>(null)
   const [tareaIndex, setTareaIndex] = useState<number | null>(null)
+  const [viewMode, setViewMode] = useState<'gantt' | 'kanban'>('gantt')
   useEffect(() => {
     getObras()
       .then(obras => {
@@ -80,6 +80,17 @@ function irAnterior() {
     setPanelAbierto(false)
     setTareaSeleccionada(null)
   }
+
+function MiVistaDeObra() {
+  // Tu estado de la tarea seleccionada que ya usas para el Panel:
+  const [tareaSeleccionada, setTareaSeleccionada] = useState<Tarea | null>(null)
+  const [panelAbierto, setPanelAbierto] = useState(false)
+
+  const handleTareaClick = (tarea: Tarea) => {
+    setTareaSeleccionada(tarea)
+    setPanelAbierto(true)
+  }
+}
 
   
 
@@ -144,21 +155,53 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         </aside>
 
         {/* Área principal */}
-        <main className="flex-1 overflow-auto p-7">
-          <h3 className="text-xl font-light text-[#333] tracking-tight mb-6">
+        <main className="flex-1 overflow-auto p-7 bg-[#F8F6F1]">
+
+{seccion === 'tareas' && (
+  loadingTareas
+    ? <p className="font-mono text-[11px] tracking-[0.3em] uppercase text-[#6B7280]">Cargando...</p>
+    : <div className="flex flex-col gap-4 h-full">
+        {/* Selector de vista */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-2xl font-bold tracking-tighter text-[#333] mb-1 font-mono">
             {obra.nombre}
           </h3>
+          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-md border border-black/[0.05]">
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`px-4 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-all ${viewMode === 'kanban' ? 'bg-white shadow-sm text-[#A44A3F]' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              Tablero
+            </button>
+            <button
+              onClick={() => setViewMode('gantt')}
+              className={`px-4 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-all ${viewMode === 'gantt' ? 'bg-white shadow-sm text-[#A44A3F]' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              Cronograma
+            </button>
+          </div>
+        </div>
 
-          {seccion === 'tareas' && (
-            loadingTareas
-              ? <p className="font-mono text-[11px] tracking-[0.3em] uppercase text-[#6B7280]">Cargando...</p>
-              : <Gantt
-                  tareas={tareas ?? []}
-                  onTareaClick={abrirEditarTarea}
-                  onNuevaTarea={abrirNuevaTarea}
-                  onUpdateTareas={handleUpdateTareas}
-                />
-          )}
+        {/* Vista */}
+        {viewMode === 'gantt' && (
+          <Gantt
+            tareas={tareas ?? []}
+            onTareaClick={abrirEditarTarea}
+            onNuevaTarea={abrirNuevaTarea}
+            onUpdateTareas={handleUpdateTareas}
+          />
+        )}
+        {viewMode === 'kanban' && (
+          <Kanban
+            tareas={tareas ?? []}
+            onUpdateTareas={reordenar}
+            onCambiarEstado={cambiarEstado}
+            onTareaClick={abrirEditarTarea}
+            onNuevaTarea={abrirNuevaTarea}
+          />
+        )}
+      </div>
+)}
           {seccion === 'cronograma' && <Proximamente />}
           {seccion === 'presupuesto' && <Proximamente />}
           {seccion === 'metricas' && <Proximamente />}
@@ -175,7 +218,7 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         onCreate={crear}
         onUpdate={editar}
         onDelete={eliminar}
-        onCambiarEstado={cambiarEstadoTarea}
+        onCambiarEstado={cambiarEstado}
         loading={tareaSeleccionada ? updating : creating}
         onNext={irSiguiente}
         onPrevious={irAnterior}

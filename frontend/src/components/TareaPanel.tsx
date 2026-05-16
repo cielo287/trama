@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from 'react'
 import type { Tarea, EstadoTarea, PrioridadTarea } from '../types'
 import type { CreateTareaInput, UpdateTareaInput } from '../types/inputs'
 import { motion, AnimatePresence } from 'motion/react'
@@ -43,10 +42,10 @@ const PRIORIDAD_COLOR: Record<PrioridadTarea, string> = {
 }
 
 const ESTADO_COLOR: Record<EstadoTarea, string> = {
-  PENDIENTE: '#67E8F9',
-  ATRASADA: '#EF4444',
-  EN_PROCESO: '#84CC16',
-  FINALIZADA: '#F59E0B',
+  PENDIENTE: '#CDC5C5',
+  EN_PROCESO: '#16F7E8',
+  ATRASADA: '#F99783',
+  FINALIZADA: '#84CC16',
 }
 
 

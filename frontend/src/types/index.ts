@@ -24,7 +24,7 @@ export interface Tarea {
   fechaFin?: string
   ordenEjecucion?: number
   prioridad?: PrioridadTarea
-  estado?: EstadoTarea
+  estado: EstadoTarea
   obraId: number
   tareaPadreId?: number
   subtareas: Tarea[]
