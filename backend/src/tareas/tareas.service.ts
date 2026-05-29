@@ -4,6 +4,7 @@ import { UpdateTareaDto } from './dto/update-tarea.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EstadoTarea } from './enums/tareas.enums';
 import { TRANSICIONES_VALIDAS } from './state/state';
+import { CreateDetalleMaterialDto } from './dto/create-detalle-material.dto';
 
 function toDate(date?: string | Date | null): Date | undefined {
   if (!date) return undefined
@@ -265,4 +266,43 @@ async cambiarEstado(tareaId: number, nuevoEstado: EstadoTarea, usuarioId: number
     });
   }
 
+  async crearDetalleMaterial(tareaId: number, createDetalleMaterialDto: CreateDetalleMaterialDto, usuarioId: number) {
+    const tarea = await this.prisma.tarea.findFirst({
+      where: {
+        id: tareaId,
+        obra: { usuarioId }
+      }
+    });
+    if (!tarea) {
+      throw new NotFoundException(`Tarea con id ${tareaId} no encontrada o no tenés acceso`);
+    }
+
+    let material = await this.prisma.material.findFirst({
+      where: {
+        nombre: createDetalleMaterialDto.nombre,
+        usuarioId
+      }
+    });
+
+    if (!material) {
+      material = await this.prisma.material.create({
+        data: {
+          nombre: createDetalleMaterialDto.nombre,
+          usuarioId,
+        }
+      })
+    }
+    return this.prisma.detalleMaterial.create({
+      data: {
+        tareaId: tareaId,
+        materialId: material.id,
+        cantidad: createDetalleMaterialDto.cantidad,
+        precioUnitario: createDetalleMaterialDto.precioUnitario,
+        unidadDeMedida: createDetalleMaterialDto.unidadDeMedida,
+      },
+      include: {
+        material: true,
+      }
+    })
+  }
 }

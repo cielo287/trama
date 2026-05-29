@@ -8,6 +8,7 @@ import { JwtAuthGuard } from '../auth/guards/guards/jwt-auth.guard';
 import { use } from 'passport';
 import { EstadoTarea } from './enums/tareas.enums';
 import { CambioEstadoTareaDto } from './dto/cambioEstadoTareaDto';
+import { CreateDetalleMaterialDto } from './dto/create-detalle-material.dto';
 
 @Controller('tareas')
 @UseGuards(JwtAuthGuard)
@@ -57,4 +58,14 @@ export class TareasController {
     const { nuevoEstado, notas } = cambioEstadoDto;
     return this.tareasService.cambiarEstado(+id, nuevoEstado, user.userId, notas);
   }
+
+  @Post(':id/detalle-material')
+  async crearDetalleMaterial(
+    @Param('id') id: string,
+    @Body() createDetalleMaterialDto: CreateDetalleMaterialDto,
+    @CurrentUser() user: UserPayload
+  ) {
+    return this.tareasService.crearDetalleMaterial(+id, createDetalleMaterialDto, user.userId);
+  }
+  
 }
