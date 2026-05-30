@@ -1,5 +1,5 @@
 import { apiFetch } from './client'
-import type { Tarea } from '@/types'
+import type { DetalleMaterial, ManoDeObra, Tarea } from '@/types'
 import type { CreateDetalleMaterialInput, CreateManoDeObraInput, CreateTareaInput } from '@/types/inputs'
 import type { UpdateTareaInput } from '@/types/inputs'
 
@@ -39,7 +39,7 @@ export const cambiarEstadoTarea = (id: number, nuevoEstado: string, notas?: stri
   })
 
 export const crearDetalleMaterial = (tareaId: number, data: CreateDetalleMaterialInput) =>
-    apiFetch(`/api/tareas/${tareaId}/detalle-material`, {
+    apiFetch<DetalleMaterial>(`/api/tareas/${tareaId}/detalle-material`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -48,8 +48,26 @@ export const crearDetalleMaterial = (tareaId: number, data: CreateDetalleMateria
     })
 
 export const crearManoDeObra = (tareaId: number, data: CreateManoDeObraInput) =>
-    apiFetch(`/api/tareas/${tareaId}/mano-de-obra`, {
+    apiFetch<ManoDeObra>(`/api/tareas/${tareaId}/mano-de-obra`, {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+
+export const editarDetalleMaterial = (tareaId: number, detalleId: number, data: CreateDetalleMaterialInput) =>
+    apiFetch<DetalleMaterial>(`/api/tareas/${tareaId}/detalle-material/${detalleId}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+
+export const editarManoDeObra = (tareaId: number, manoDeObraId: number, data: CreateManoDeObraInput) =>
+    apiFetch<ManoDeObra>(`/api/tareas/${tareaId}/mano-de-obra/${manoDeObraId}`, {
+        method: 'PATCH',
         headers: {
             'Content-Type': 'application/json'
         },

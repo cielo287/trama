@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { getTareasByObra, createTarea, updateTarea, deleteTarea, bulkUpdateOrder, cambiarEstadoTarea } from '@/api/tareas'
+import { getTareasByObra, createTarea, updateTarea, deleteTarea, bulkUpdateOrder, cambiarEstadoTarea, crearDetalleMaterial } from '@/api/tareas'
 import type { Tarea, EstadoTarea } from '@/types'
-import type { CreateTareaInput, UpdateTareaInput } from '@/types/inputs'
+import type { CreateDetalleMaterialInput, CreateTareaInput, UpdateTareaInput } from '@/types/inputs'
 
 export function useTareas(obraId: number) {
   const [tareas, setTareas] = useState<Tarea[]>([])
@@ -99,7 +99,38 @@ export function useTareas(obraId: number) {
     }
   }
 
+  async function agregarMaterial(
+  tareaId: number,
+  data: CreateDetalleMaterialInput
+) {
+  console.log('agregarMaterial', tareaId, data)
+  
+  const nuevoDetalle = await crearDetalleMaterial(
+    tareaId,
+    data
+  )
+
+  console.log('respuesta backend', nuevoDetalle)
+
+  setTareas(prev =>
+    prev.map(t =>
+      t.id === tareaId
+        ? {
+            ...t,
+            detallesMaterial: [
+              ...(t.detallesMaterial ?? []),
+              nuevoDetalle,
+            ],
+          }
+        : t
+    )
+  )
+
+  return nuevoDetalle
+}
+
+
   
 
-  return { tareas, loading, actionLoading, error, creating,  updating, crear, editar, eliminar, reordenar, cambiarEstado }
+  return { tareas, loading, actionLoading, error, creating,  updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial }
 }

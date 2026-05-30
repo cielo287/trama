@@ -16,7 +16,16 @@ export default function ObraPage() {
   const [obra, setObra] = useState<Obra | null>(null)
   const [loading, setLoading] = useState(true)
   const [seccion, setSeccion] = useState<Seccion>('tareas')
-  const { tareas, loading: loadingTareas, crear, editar, eliminar, reordenar, cambiarEstado,creating, updating } = useTareas(Number(id))
+  const { tareas,
+     loading: loadingTareas, 
+     crear, 
+     editar, 
+     eliminar, 
+     reordenar, 
+     cambiarEstado,
+     creating, 
+     updating,
+    agregarMaterial } = useTareas(Number(id))
 
   const [panelAbierto, setPanelAbierto] = useState(false)
   const [tareaSeleccionada, setTareaSeleccionada] = useState<Tarea | null>(null)
@@ -211,7 +220,8 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
 
       <TareaPanel
         open={panelAbierto}
-        tarea={tareaSeleccionada}
+        tarea={
+          tareas.find(t => t.id === tareaSeleccionada?.id) || tareaSeleccionada}
         obraId={Number(id)}
         totalTareas={tareas?.length ?? 0}
         onClose={cerrarPanel}
@@ -222,6 +232,7 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         loading={tareaSeleccionada ? updating : creating}
         onNext={irSiguiente}
         onPrevious={irAnterior}
+        onAgregarMaterial={agregarMaterial}
       />
     </div>
   )

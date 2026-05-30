@@ -1,23 +1,52 @@
-import type { Tarea } from '@/types'
+import { useState } from 'react'
+import type { DetalleMaterial, Tarea } from '@/types'
 import { calcularCostoMateriales } from '@/utils/tarea'
 import SectionLabel from './ui/section-label'
+import MaterialForm from './MaterialForm'
+import type { CreateDetalleMaterialInput } from '@/types/inputs'
 
 interface Props {
   tarea?: Tarea | null
   isEditing: boolean
+  onAgregarMaterial: (
+    tareaId: number,
+    data: CreateDetalleMaterialInput
+  ) => Promise<DetalleMaterial>
 }
 
 export default function MaterialesSection({
   tarea,
   isEditing,
+  onAgregarMaterial,
 }: Props) {
   const materiales = tarea?.detallesMaterial ?? []
+
   const totalMateriales = tarea
     ? calcularCostoMateriales(tarea)
     : 0
 
+  const [showForm, setShowForm] = useState(false)
+
+  const handleSave = async (
+    data: CreateDetalleMaterialInput
+  ) => {
+    console.log('MaterialesSection', data)
+    if (!tarea) return
+
+    try {
+      await onAgregarMaterial(
+        tarea.id,
+        data
+      )
+
+      setShowForm(false)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   return (
-    <div className="border border-black/[0.06] bg-gray-50/30 rounded-sm p-4 space-y-4">
+    <div className="relative border border-black/[0.06] bg-gray-50/30 rounded-sm p-4 space-y-4">
       <SectionLabel>
         Materiales
       </SectionLabel>
@@ -70,24 +99,51 @@ export default function MaterialesSection({
       )}
 
       {isEditing && (
-<button
-  type="button"
-  className="
-    px-2
-    py-1
-    rounded
-    bg-[#A44A3F]/10
-    text-[#A44A3F]
-    text-[10px]
-    font-bold
-    uppercase
-    tracking-[0.15em]
-    hover:bg-[#A44A3F]/15
-    transition-colors
-  "
->
-  + Agregar material
-</button>
+        <>
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="
+              px-2
+              py-1
+              rounded
+              bg-[#A44A3F]/10
+              text-[#A44A3F]
+              text-[10px]
+              font-bold
+              uppercase
+              tracking-[0.15em]
+              hover:bg-[#A44A3F]/15
+              transition-colors
+            "
+          >
+            + Agregar material
+          </button>
+
+          {showForm && (
+            <div
+              className="
+                absolute
+                top-10
+                left-0
+                right-0
+                bottom-0
+                bg-white
+                rounded-sm
+                border
+                border-[#A44A3F]/20
+                p-4
+                z-20
+                overflow-y-auto
+              "
+            >
+              <MaterialForm
+                onCancel={() => setShowForm(false)}
+                onSave={handleSave}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   )

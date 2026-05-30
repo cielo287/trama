@@ -1,5 +1,5 @@
-import type { Tarea, EstadoTarea, PrioridadTarea } from '../types'
-import type { CreateTareaInput, UpdateTareaInput } from '../types/inputs'
+import type { Tarea, EstadoTarea, PrioridadTarea, DetalleMaterial } from '../types'
+import type { CreateDetalleMaterialInput, CreateManoDeObraInput, CreateTareaInput, UpdateTareaInput } from '../types/inputs'
 import { motion, AnimatePresence } from 'motion/react'
 import { useTareaPanel } from '@/hooks/useTareaPanel'
 import MaterialesSection from './MaterialesSection'
@@ -19,11 +19,20 @@ interface Props {
   onCambiarEstado?: (id: number, nuevoEstado: EstadoTarea, notas?: string) => Promise<Tarea | void>
   onNext: () => void
   onPrevious: () => void
+  onAgregarMaterial: (tareaId: number, data: CreateDetalleMaterialInput) => Promise<DetalleMaterial>
+  onEditarMaterial?: (tareaId: number, detalleId: number, data: CreateDetalleMaterialInput) => Promise<void>
+  onAgregarManoDeObra?: (tareaId: number, data: CreateManoDeObraInput) => Promise<void>
+  onEditarManoDeObra?: (tareaId: number, manoDeObraId: number, data: CreateManoDeObraInput) => Promise<void>
 }
 
 export default function TareaPanel({
   open, tarea, obraId, totalTareas,
-  onClose, onCreate, onUpdate, onDelete, loading, onCambiarEstado, onNext, onPrevious
+  onClose, onCreate, onUpdate, 
+  onDelete, loading, onCambiarEstado,
+   onNext, onPrevious, onAgregarMaterial, 
+   onEditarMaterial, 
+   onAgregarManoDeObra, 
+   onEditarManoDeObra
 }: Props) {
  
  
@@ -252,6 +261,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
                   <MaterialesSection
                     tarea={tarea}
                     isEditing={isEditing}
+                    onAgregarMaterial={onAgregarMaterial}
                   />
                   <ManoDeObraSection
                     tarea={tarea}

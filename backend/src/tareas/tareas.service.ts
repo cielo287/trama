@@ -349,6 +349,96 @@ async cambiarEstado(tareaId: number, nuevoEstado: EstadoTarea, usuarioId: number
     });
   }
 
+  async editarDetalleMaterial(tareaId: number, detalleMaterialId: number, updateDetalleMaterialDto: CreateDetalleMaterialDto, usuarioId: number) {
+    const detalle = await this.prisma.detalleMaterial.findFirst({
+      where: {
+        id: detalleMaterialId,
+        tareaId,
+        tarea: {
+          obra: { usuarioId }
+        }
+      }
+    });
+    if (!detalle) {
+      throw new NotFoundException(`Detalle de material con id ${detalleMaterialId} no encontrado o no tenés acceso`);
+    }
+
+    let material = await this.prisma.material.findFirst({
+      where: {
+        nombre: updateDetalleMaterialDto.nombre,
+        usuarioId
+      }
+    });
+
+    if (!material) {
+      material = await this.prisma.material.create({
+        data: {
+          nombre: updateDetalleMaterialDto.nombre,
+          usuarioId
+        }
+      })
+    }
+
+    return this.prisma.detalleMaterial.update({
+      where: { id: detalleMaterialId },
+      data: {
+        materialId: material.id,
+        cantidad: updateDetalleMaterialDto.cantidad,
+        precioUnitario: updateDetalleMaterialDto.precioUnitario,
+        unidadDeMedida: updateDetalleMaterialDto.unidadDeMedida,
+      },
+      include: {
+        material: true,
+      }
+    });
+  }
+
+  async editarManoDeObra(tareaId: number, manoDeObraId: number, updateManoDeObraDto: CreateManoDeObraDto, usuarioId: number) {
+    const mano = await this.prisma.manoDeObra.findFirst({
+      where: {
+        id: manoDeObraId,
+       tareaId,
+        tarea: {
+          obra: { usuarioId }
+        }
+      }
+    });
+    if (!mano) {
+      throw new NotFoundException(`Mano de obra con id ${manoDeObraId} no encontrada o no tenés acceso`);
+    }
+
+    const telefonoNormalizado = this.normalizarTelefono(updateManoDeObraDto.telefono);
+
+    let encargado = await this.prisma.encargado.findFirst({
+      where: {
+        telefono: telefonoNormalizado,
+        usuarioId
+      }
+    });
+
+    if (!encargado) {
+      encargado = await this.prisma.encargado.create({
+        data: {
+          nombre: updateManoDeObraDto.nombre,
+          apellido: updateManoDeObraDto.apellido,
+          telefono: telefonoNormalizado,
+          usuarioId,
+        }
+      })
+    }
+
+    return this.prisma.manoDeObra.update({
+      where: { id: manoDeObraId },
+      data: {
+        encargadoId: encargado.id,
+        precio: updateManoDeObraDto.precio,
+      },
+      include: {
+        encargado: true,
+      }
+    });
+  }
+
   private normalizarTelefono(telefono: string): string {
     // Eliminar espacios, guiones y paréntesis
     return telefono.replace(/[\s\-()]/g, '');

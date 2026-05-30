@@ -77,4 +77,23 @@ export class TareasController {
   ) {
     return this.tareasService.crearManoDeObra(+id, encargadoDto, user.userId);
   }
+
+  @Patch(':id/detalle-material/:detalleMaterialId')
+  async editarDetalleMaterial(
+    @Param('id') id: string,
+    @Param('detalleMaterialId') detalleMaterialId: string,
+    @Body() updateDetalleMaterialDto: CreateDetalleMaterialDto,
+    @CurrentUser() user: UserPayload
+  ) {
+    return this.tareasService.editarDetalleMaterial(+id, +detalleMaterialId, updateDetalleMaterialDto, user.userId);
+}
+  @Patch(':id/mano-de-obra/:manoDeObraId')
+  async editarManoDeObra(
+    @Param('id') id: string,
+    @Param('manoDeObraId') manoDeObraId: string,
+    @Body() updateManoDeObraDto: CreateManoDeObraDto,
+    @CurrentUser() user: UserPayload
+  ) {
+    return this.tareasService.editarManoDeObra(+id, +manoDeObraId, updateManoDeObraDto, user.userId);
+  }
 }
