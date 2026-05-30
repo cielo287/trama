@@ -216,13 +216,13 @@ export default function Gantt({ tareas, selectedTareaId, onUpdateTareas, onTarea
   }
 
   return (
-    <div className="bg-white border border-black/[0.08] rounded-sm flex flex-col h-full font-mono">
+    <div className="bg-white border border-black/[0.08] rounded-sm flex flex-col h-full font-sans">
       {/* Header estático */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-black/[0.1] bg-white z-50">
         <div className="flex items-center gap-4">
           <div className="w-2 h-2 rounded-full bg-[#A44A3F] animate-pulse" />
-          <h2 className="text-[13px] tracking-[0.2em] uppercase font-bold text-[#333]">
-            Planificación: <span className="text-[#A44A3F]">{mesLabel}</span>
+          <h2 className="text-[13px] tracking-[0.2em] uppercase font-bold text-[#333] font-sans">
+            Planificación: <span className="text-[#A44A3F] font-sans">{mesLabel}</span>
           </h2>
         </div>
         

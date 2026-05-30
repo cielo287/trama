@@ -9,6 +9,7 @@ import { use } from 'passport';
 import { EstadoTarea } from './enums/tareas.enums';
 import { CambioEstadoTareaDto } from './dto/cambioEstadoTareaDto';
 import { CreateDetalleMaterialDto } from './dto/create-detalle-material.dto';
+import { CreateManoDeObraDto } from './dto/create-mano-de-obra.dto';
 
 @Controller('tareas')
 @UseGuards(JwtAuthGuard)
@@ -68,4 +69,12 @@ export class TareasController {
     return this.tareasService.crearDetalleMaterial(+id, createDetalleMaterialDto, user.userId);
   }
   
+  @Post(':id/mano-de-obra')
+  async crearManoDeObra(
+    @Param('id') id: string,
+    @Body() encargadoDto: CreateManoDeObraDto,
+    @CurrentUser() user: UserPayload
+  ) {
+    return this.tareasService.crearManoDeObra(+id, encargadoDto, user.userId);
+  }
 }

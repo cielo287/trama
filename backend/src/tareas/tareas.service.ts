@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EstadoTarea } from './enums/tareas.enums';
 import { TRANSICIONES_VALIDAS } from './state/state';
 import { CreateDetalleMaterialDto } from './dto/create-detalle-material.dto';
+import { CreateManoDeObraDto } from './dto/create-mano-de-obra.dto';
 
 function toDate(date?: string | Date | null): Date | undefined {
   if (!date) return undefined
@@ -304,5 +305,52 @@ async cambiarEstado(tareaId: number, nuevoEstado: EstadoTarea, usuarioId: number
         material: true,
       }
     })
+  }
+
+  async crearManoDeObra(tareaId: number, encargadoDto: CreateManoDeObraDto, usuarioId: number) {
+    const tarea = await this.prisma.tarea.findFirst({
+      where: {
+        id: tareaId,
+        obra: { usuarioId }
+      }
+    });
+    if (!tarea) {
+      throw new NotFoundException(`Tarea con id ${tareaId} no encontrada o no tenés acceso`);
+    }
+
+    const telefonoNormalizado = this.normalizarTelefono(encargadoDto.telefono);
+
+    let encargado = await this.prisma.encargado.findFirst({
+      where: {
+        telefono: telefonoNormalizado,
+        usuarioId
+      }
+    });
+
+    if (!encargado) {
+      encargado = await this.prisma.encargado.create({
+        data: {
+          nombre: encargadoDto.nombre,
+          apellido: encargadoDto.apellido,
+          telefono: telefonoNormalizado,
+          usuarioId,
+        }
+      })
+    }
+    return this.prisma.manoDeObra.create({
+      data: {
+        tareaId: tareaId,
+        encargadoId: encargado.id,
+        precio: encargadoDto.precio,
+      },
+      include: {
+        encargado: true,
+      }
+    });
+  }
+
+  private normalizarTelefono(telefono: string): string {
+    // Eliminar espacios, guiones y paréntesis
+    return telefono.replace(/[\s\-()]/g, '');
   }
 }

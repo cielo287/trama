@@ -63,14 +63,8 @@ export interface Encargado {
   apellido: string
   telefono: string
   usuarioId: number
-  rubros: Rubro[]
   createdAt: string
   updatedAt: string
-}
-
-export interface Rubro {
-  id: number
-  nombre: string
 }
 
 export interface ManoDeObra {

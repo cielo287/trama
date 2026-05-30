@@ -1,6 +1,6 @@
 import { apiFetch } from './client'
 import type { Tarea } from '@/types'
-import type { CreateTareaInput } from '@/types/inputs'
+import type { CreateDetalleMaterialInput, CreateManoDeObraInput, CreateTareaInput } from '@/types/inputs'
 import type { UpdateTareaInput } from '@/types/inputs'
 
 
@@ -37,3 +37,21 @@ export const cambiarEstadoTarea = (id: number, nuevoEstado: string, notas?: stri
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ nuevoEstado, notas }),
   })
+
+export const crearDetalleMaterial = (tareaId: number, data: CreateDetalleMaterialInput) =>
+    apiFetch(`/api/tareas/${tareaId}/detalle-material`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+
+export const crearManoDeObra = (tareaId: number, data: CreateManoDeObraInput) =>
+    apiFetch(`/api/tareas/${tareaId}/mano-de-obra`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })

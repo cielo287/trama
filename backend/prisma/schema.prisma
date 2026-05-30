@@ -129,14 +129,6 @@ model DetalleMaterial {
   tarea          Tarea    @relation(fields: [tareaId], references: [id])
 }
 
-model Rubro {
-  id         Int         @id @default(autoincrement())
-  nombre     String      @unique
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  
-  encargados Encargado[]
-}
 
 model Encargado {
   id         Int      @id @default(autoincrement())
@@ -148,8 +140,6 @@ model Encargado {
 
   usuarioId Int
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
-  
-  rubros     Rubro[]
   manosDeObra ManoDeObra[]
 }
 

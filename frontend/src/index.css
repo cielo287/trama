@@ -18,10 +18,9 @@
     --radius-md: 3px;
   }
 }
-
-* {
-  font-family: monospace;
-}
+  body {
+    font-family: sans-serif;
+  }
 
 ::selection {
   background: #A44A3F;

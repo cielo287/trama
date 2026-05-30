@@ -27,22 +27,13 @@ export class EncargadosService {
       data: {
         ...encargadoData,
         usuarioId,
-        rubros: {
-          connect: rubroIds.map(id => ({id}))
-        }
       },
-      include: {
-        rubros: true
-      }
     });
   }
 
   async findAll(usuarioId: number) {
     return this.prisma.encargado.findMany({
       where: { usuarioId },
-      include: {
-        rubros: true,  // Incluye los rubros del encargado
-      },
     });
   }
 
@@ -51,9 +42,6 @@ export class EncargadosService {
       where: { 
         id,
         usuarioId 
-      },
-      include: {
-        rubros: true,
       },
     });
 
@@ -79,9 +67,6 @@ export class EncargadosService {
           }
         })
       },
-      include: {
-        rubros: true
-      }
     });
 }
 

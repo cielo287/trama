@@ -24,3 +24,18 @@ export interface UpdateTareaInput {
 export interface CreateObraInput {
   nombre: string
 }
+
+export interface CreateManoDeObraInput {
+  nombre: string
+  apellido: string
+  telefono: string
+  precio: number
+}
+
+
+export interface CreateDetalleMaterialInput {
+  nombre: string
+  cantidad: number
+  precioUnitario: number
+  unidadDeMedida: string
+}

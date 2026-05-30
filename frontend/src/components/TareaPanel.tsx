@@ -2,6 +2,9 @@ import type { Tarea, EstadoTarea, PrioridadTarea } from '../types'
 import type { CreateTareaInput, UpdateTareaInput } from '../types/inputs'
 import { motion, AnimatePresence } from 'motion/react'
 import { useTareaPanel } from '@/hooks/useTareaPanel'
+import MaterialesSection from './MaterialesSection'
+import ManoDeObraSection from './ManoDeObraSection'
+import SectionLabel from './ui/section-label'
 
 interface Props {
   open: boolean
@@ -113,9 +116,6 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
             <div className="flex-1 overflow-y-auto px-8 py-10 space-y-8">
               {/* Título */}
               <div className="space-y-3">
-                <label className="text-[10px] tracking-[0.25em] uppercase text-[#A44A3F] font-bold block opacity-60">
-                  Nombre
-                </label>
                 {isEditing ? (
                   <input
                     type="text"
@@ -134,9 +134,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
 
               {/* Descripción */}
               <div className="space-y-3">
-                <label className="text-[10px] tracking-[0.25em] uppercase text-[#A44A3F] font-bold block opacity-60">
-                  Descripción
-                </label>
+                
                 {isEditing ? (
                   <textarea
                     value={descripcion}
@@ -155,9 +153,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
               {/* Fechas */}
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <label className="text-[10px] tracking-[0.25em] uppercase text-[#A44A3F] font-bold block opacity-60">
-                    Inicio
-                  </label>
+                  <SectionLabel>Inicio</SectionLabel>
                   {isEditing ? (
                     <input
                       type="date"
@@ -172,9 +168,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
                   )}
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[10px] tracking-[0.25em] uppercase text-[#A44A3F] font-bold block opacity-60">
-                    Fin
-                  </label>
+                  <SectionLabel>Fin</SectionLabel>
                   {isEditing ? (
                     <input
                       type="date"
@@ -193,9 +187,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
               {/* Estado + Prioridad */}
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <label className="text-[10px] tracking-[0.25em] uppercase text-[#A44A3F] font-bold block opacity-60">
-                    Estado
-                  </label>
+                  <SectionLabel>Estado</SectionLabel>
 {isNew ? (
   // 👉 CREANDO → estado fijo
   <div className="flex items-center gap-2 py-1">
@@ -233,9 +225,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
 )}
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[10px] tracking-[0.25em] uppercase text-[#A44A3F] font-bold block opacity-60">
-                    Prioridad
-                  </label>
+                  <SectionLabel>Prioridad</SectionLabel>
                   {isEditing ? (
                     <select
                       value={prioridad}
@@ -259,6 +249,18 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
                   )}
                 </div>
               </div>
+                  <MaterialesSection
+                    tarea={tarea}
+                    isEditing={isEditing}
+                  />
+                  <ManoDeObraSection
+                    tarea={tarea}
+                    isEditing={isEditing}
+                  />
+
+
+
+
             </div>
 
             {/* Footer */}
