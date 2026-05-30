@@ -221,7 +221,7 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
       <TareaPanel
         open={panelAbierto}
         tarea={
-          tareas.find(t => t.id === tareaSeleccionada?.id) || tareaSeleccionada}
+          tareas.find(t => t.id === tareaSeleccionada?.id) ?? null}
         obraId={Number(id)}
         totalTareas={tareas?.length ?? 0}
         onClose={cerrarPanel}

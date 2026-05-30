@@ -1,17 +1,16 @@
 import { Tarea } from "@/types"
 
-export function calcularCostoMateriales(tarea: Tarea): number {
-  return tarea.detallesMaterial.reduce(
-    (acc, detalle) =>
-      acc +
-      Number(detalle.cantidad) *
-      Number(detalle.precioUnitario),
-    0
-  )
+export function calcularCostoMateriales(tarea: Tarea) {
+  const materiales = tarea.detallesMaterial ?? []
+
+  return materiales.reduce((acc, m) => {
+    return acc + Number(m.cantidad) * Number(m.precioUnitario)
+  }, 0)
 }
 
 export function calcularCostoManoDeObra(tarea: Tarea): number {
-  return tarea.manoDeObra.reduce(
+  const manoDeObra = tarea.manoDeObra ?? []
+  return manoDeObra.reduce(
     (acc, mano) =>
       acc + Number(mano.precio),
     0
