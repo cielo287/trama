@@ -1,21 +1,35 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { Tarea, EstadoTarea, PrioridadTarea } from '@/types'
 import type { CreateTareaInput, UpdateTareaInput } from '@/types/inputs'
+import { useRef } from 'react'
+
 
 interface UseTareaPanelProps {
   tarea?: Tarea | null
   obraId: number
   open: boolean
   onClose: () => void
-  onCreate: (data: CreateTareaInput) => Promise<void>
+  onCreate: (data: CreateTareaInput) => Promise<Tarea>
   onUpdate: (id: number, data: UpdateTareaInput) => Promise<void>
+  onCreated?: (tarea: Tarea) => void
   onCambiarEstado?: (id: number, nuevoEstado: EstadoTarea, notas?: string) => Promise<Tarea | void>
   onNext?: () => void
-  onPrevious?: () => void // 💡 Cambiado de onPrevious a onPrev para consistencia
+  onPrevious?: () => void 
+  abrirEnEdicion: boolean
 }
 
 export function useTareaPanel({
-  tarea, obraId, open, onClose, onCreate, onUpdate, onCambiarEstado, onNext, onPrevious
+  tarea, 
+  obraId, 
+  open, 
+  onClose, 
+  onCreate, 
+  onUpdate, 
+  onCreated,
+  onCambiarEstado, 
+  onNext, 
+  onPrevious,
+  abrirEnEdicion
 }: UseTareaPanelProps) {
   const isNew = !tarea
   const [isEditing, setIsEditing] = useState(isNew)
@@ -27,26 +41,28 @@ export function useTareaPanel({
   const [estado, setEstado] = useState<EstadoTarea>('PENDIENTE')
   const [prioridad, setPrioridad] = useState<PrioridadTarea>('ALTA')
 
-  // Sincronizamos el formulario cuando cambia la tarea
-  useEffect(() => {
-    if (tarea) {
-      setTitulo(tarea.titulo)
-      setDescripcion(tarea.descripcion ?? '')
-      setFechaInicio(tarea.fechaInicio ? tarea.fechaInicio.slice(0, 10) : '')
-      setFechaFin(tarea.fechaFin ? tarea.fechaFin.slice(0, 10) : '')
-      setEstado(tarea.estado ?? 'PENDIENTE')
-      setPrioridad(tarea.prioridad ?? 'ALTA')
-      setIsEditing(false)
-    } else {
-      setTitulo('')
-      setDescripcion('')
-      setFechaInicio('')
-      setFechaFin('')
-      setEstado('PENDIENTE')
-      setPrioridad('ALTA')
-      setIsEditing(true)
-    }
-  }, [tarea, open])
+
+useEffect(() => {
+  if (tarea) {
+    setTitulo(tarea.titulo)
+    setDescripcion(tarea.descripcion ?? '')
+    setFechaInicio(tarea.fechaInicio ? tarea.fechaInicio.slice(0, 10) : '')
+    setFechaFin(tarea.fechaFin ? tarea.fechaFin.slice(0, 10) : '')
+    setEstado(tarea.estado ?? 'PENDIENTE')
+    setPrioridad(tarea.prioridad ?? 'ALTA')
+
+    setIsEditing(abrirEnEdicion)
+  } else {
+    setTitulo('')
+    setDescripcion('')
+    setFechaInicio('')
+    setFechaFin('')
+    setEstado('PENDIENTE')
+    setPrioridad('ALTA')
+
+    setIsEditing(true)
+  }
+}, [tarea?.id, open, abrirEnEdicion])
 
   const handleSubmit = useCallback(async () => {
     if (!titulo.trim() || !isEditing) return
@@ -64,7 +80,7 @@ export function useTareaPanel({
       })
       setIsEditing(false)
     } else {
-      await onCreate({
+      const nuevaTarea = await onCreate({
         titulo: titulo.trim(),
         descripcion: descripcion.trim() || undefined,
         fechaInicio: fechaInicio || undefined,
@@ -72,9 +88,19 @@ export function useTareaPanel({
         prioridad,
         obraId,
       })
-      onClose()
+      onCreated?.(nuevaTarea)
     }
-  }, [titulo, descripcion, fechaInicio, fechaFin, estado, prioridad, tarea, isEditing, onCambiarEstado, onUpdate, onCreate, obraId, onClose])
+  }, [titulo, 
+    descripcion, 
+    fechaInicio, 
+    fechaFin, 
+    estado, 
+    prioridad, 
+    tarea, 
+    isEditing, 
+    onCambiarEstado, 
+    onUpdate, 
+    onCreate, onCreated, obraId])
 
   // Atajos de teclado
   useEffect(() => {

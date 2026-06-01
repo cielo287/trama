@@ -18,6 +18,7 @@ import { motion } from 'motion/react'
 import { type EstadoTarea, type Tarea } from '../types'
 
 import { useKanban } from '../hooks/useKanban'
+import { formatFechaCalendario } from '@/utils/fecha'
 
 type Estado =
   | 'PENDIENTE'
@@ -329,15 +330,7 @@ function SortableCard({
 
           <div className="text-[9px] uppercase tracking-tighter text-gray-400 font-bold">
 
-            {new Date(
-              tarea.fechaInicio
-            ).toLocaleDateString(
-              'es',
-              {
-                day: '2-digit',
-                month: 'short'
-              }
-            )}
+            {formatFechaCalendario(tarea.fechaInicio)}
 
           </div>
 

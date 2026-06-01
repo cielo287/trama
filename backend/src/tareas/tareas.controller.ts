@@ -5,8 +5,6 @@ import { UpdateTareaDto } from './dto/update-tarea.dto';
 import { CurrentUser } from '../auth/decorators/decorators/current-user.decorator';
 import type { UserPayload } from '../auth/interfaces/user-payload.interface';
 import { JwtAuthGuard } from '../auth/guards/guards/jwt-auth.guard';
-import { use } from 'passport';
-import { EstadoTarea } from './enums/tareas.enums';
 import { CambioEstadoTareaDto } from './dto/cambioEstadoTareaDto';
 import { CreateDetalleMaterialDto } from './dto/create-detalle-material.dto';
 import { CreateManoDeObraDto } from './dto/create-mano-de-obra.dto';

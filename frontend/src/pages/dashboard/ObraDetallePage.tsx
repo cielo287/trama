@@ -25,12 +25,19 @@ export default function ObraPage() {
      cambiarEstado,
      creating, 
      updating,
-    agregarMaterial } = useTareas(Number(id))
+    agregarMaterial, agregarManoDeObra } = useTareas(Number(id))
 
   const [panelAbierto, setPanelAbierto] = useState(false)
-  const [tareaSeleccionada, setTareaSeleccionada] = useState<Tarea | null>(null)
+  const [tareaSeleccionadaId, setTareaSeleccionadaId] =
+  useState<number | null>(null)
   const [tareaIndex, setTareaIndex] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<'gantt' | 'kanban'>('gantt')
+  
+  const [abrirEnEdicion, setAbrirEnEdicion] = useState(false)
+  
+  const tareaSeleccionada =
+  tareas.find(t => t.id === tareaSeleccionadaId) ?? null
+  
   useEffect(() => {
     getObras()
       .then(obras => {
@@ -42,15 +49,18 @@ export default function ObraPage() {
       .finally(() => setLoading(false))
   }, [id])
 
-  function abrirNuevaTarea() {
-    setTareaSeleccionada(null)
-    setPanelAbierto(true)
-  }
+function abrirNuevaTarea() {
+  setAbrirEnEdicion(true)
+  setTareaSeleccionadaId(null)
+  setPanelAbierto(true)
+}
 
-  function abrirEditarTarea(tarea: Tarea) {
+function abrirEditarTarea(tarea: Tarea) {
+
   const index = tareas.findIndex(t => t.id === tarea.id)
+  setAbrirEnEdicion(false)
   setTareaIndex(index)
-  setTareaSeleccionada(tarea)
+  setTareaSeleccionadaId(tarea.id)
   setPanelAbierto(true)
 }
 
@@ -62,10 +72,10 @@ function irSiguiente() {
   // 🔄 Si el siguiente índice supera el límite, volvemos a la primera (0)
   if (siguiente >= tareas.length) {
     setTareaIndex(0)
-    setTareaSeleccionada(tareas[0])
+    setTareaSeleccionadaId(tareas[0].id)
   } else {
     setTareaIndex(siguiente)
-    setTareaSeleccionada(tareas[siguiente])
+    setTareaSeleccionadaId(tareas[siguiente].id)
   }
 }
 
@@ -78,30 +88,27 @@ function irAnterior() {
   if (anterior < 0) {
     const ultimoIndex = tareas.length - 1
     setTareaIndex(ultimoIndex)
-    setTareaSeleccionada(tareas[ultimoIndex])
+    setTareaSeleccionadaId(tareas[ultimoIndex].id)
   } else {
     setTareaIndex(anterior)
-    setTareaSeleccionada(tareas[anterior])
+    setTareaSeleccionadaId(tareas[anterior].id)
   }
 }
 
   function cerrarPanel() {
     setPanelAbierto(false)
-    setTareaSeleccionada(null)
+    setTareaSeleccionadaId(null)
   }
 
-function MiVistaDeObra() {
-  // Tu estado de la tarea seleccionada que ya usas para el Panel:
-  const [tareaSeleccionada, setTareaSeleccionada] = useState<Tarea | null>(null)
-  const [panelAbierto, setPanelAbierto] = useState(false)
+function handleTareaCreada(tarea: Tarea) {
+  setAbrirEnEdicion(true)
+  setTareaSeleccionadaId(tarea.id)
 
-  const handleTareaClick = (tarea: Tarea) => {
-    setTareaSeleccionada(tarea)
-    setPanelAbierto(true)
-  }
+  const index = tareas.findIndex(t => t.id === tarea.id)
+
+  setTareaIndex(index >= 0 ? index : tareas.length)
 }
 
-  
 
 function handleUpdateTareas(nuevasTareas: Tarea[]) {
   // Actualizamos estado local primero
@@ -221,11 +228,12 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
       <TareaPanel
         open={panelAbierto}
         tarea={
-          tareas.find(t => t.id === tareaSeleccionada?.id) ?? null}
+          tareaSeleccionada}
         obraId={Number(id)}
         totalTareas={tareas?.length ?? 0}
         onClose={cerrarPanel}
         onCreate={crear}
+        onCreated={handleTareaCreada}
         onUpdate={editar}
         onDelete={eliminar}
         onCambiarEstado={cambiarEstado}
@@ -233,6 +241,8 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         onNext={irSiguiente}
         onPrevious={irAnterior}
         onAgregarMaterial={agregarMaterial}
+        onAgregarManoDeObra={agregarManoDeObra}
+        abrirEnEdicion={abrirEnEdicion}
       />
     </div>
   )

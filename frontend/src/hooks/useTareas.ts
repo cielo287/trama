@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { getTareasByObra, createTarea, updateTarea, deleteTarea, bulkUpdateOrder, cambiarEstadoTarea, crearDetalleMaterial } from '@/api/tareas'
+import { getTareasByObra, createTarea, updateTarea, deleteTarea, bulkUpdateOrder, cambiarEstadoTarea, crearDetalleMaterial, crearManoDeObra } from '@/api/tareas'
 import type { Tarea, EstadoTarea } from '@/types'
-import type { CreateDetalleMaterialInput, CreateTareaInput, UpdateTareaInput } from '@/types/inputs'
+import type { CreateDetalleMaterialInput, CreateManoDeObraInput, CreateTareaInput, UpdateTareaInput } from '@/types/inputs'
 
 export function useTareas(obraId: number) {
   const [tareas, setTareas] = useState<Tarea[]>([])
@@ -20,37 +20,56 @@ export function useTareas(obraId: number) {
       .finally(() => setLoading(false))
   }, [obraId])
 
-  async function crear(data: CreateTareaInput) {
-    if (creating) return
-    setCreating(true)
-    setError(null)
-    try {
-      const nueva = await createTarea(data)
-      setTareas(prev => [...prev, nueva])
-    } catch (e) {
-      console.error(e)
-      setError('Error al crear la tarea')
-      throw e
-    } finally {
-      setCreating(false)
-    }
+async function crear(
+  data: CreateTareaInput
+): Promise<Tarea> {
+  if (creating) {
+    throw new Error('Creación de tarea en curso')
   }
 
-  async function editar(id: number, data: UpdateTareaInput) {
-    if (updating) return
-    setUpdating(true)
-    setError(null)
-    try {
-      const actualizada = await updateTarea(id, data)
-      setTareas(prev => prev.map(t => t.id === id ? actualizada : t))
-    } catch (e) {
-      console.error(e)
-      setError('Error al editar la tarea')
-      throw e
-    } finally {
-      setUpdating(false)
-    }
+  setCreating(true)
+  setError(null)
+
+  try {
+    const nueva = await createTarea(data)
+    setTareas(prev => [...prev, nueva])
+    return nueva
+  } catch (e) {
+    console.error(e)
+    setError('Error al crear la tarea')
+    throw e
+  } finally {
+    setCreating(false)
   }
+}
+
+  async function editar(id: number, data: UpdateTareaInput) {
+  if (updating) return
+
+  setUpdating(true)
+  setError(null)
+
+  try {
+    const actualizada = await updateTarea(id, data)
+
+    setTareas(prev =>
+      prev.map(t =>
+        t.id === id
+          ? {
+              ...t,          // conserva detallesMaterial
+              ...actualizada // actualiza campos editados
+            }
+          : t
+      )
+    )
+  } catch (e) {
+    console.error(e)
+    setError('Error al editar la tarea')
+    throw e
+  } finally {
+    setUpdating(false)
+  }
+}
 
   async function cambiarEstado(id: number, nuevoEstado: EstadoTarea, notas?: string) {
     if (actionLoading) return
@@ -129,8 +148,34 @@ export function useTareas(obraId: number) {
   return nuevoDetalle
 }
 
+async function agregarManoDeObra(
+  tareaId: number,
+  data: CreateManoDeObraInput
+) {
+  const nueva = await crearManoDeObra(
+    tareaId,
+    data
+  )
+
+  setTareas(prev =>
+    prev.map(t =>
+      t.id === tareaId
+        ? {
+            ...t,
+            manoDeObra: [
+              ...(t.manoDeObra ?? []),
+              nueva,
+            ],
+          }
+        : t
+    )
+  )
+
+  return nueva
+}
+
 
   
 
-  return { tareas, loading, actionLoading, error, creating,  updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial }
+  return { tareas, loading, actionLoading, error, creating,  updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial, agregarManoDeObra }
 }

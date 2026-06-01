@@ -1,10 +1,11 @@
-import type { Tarea, EstadoTarea, PrioridadTarea, DetalleMaterial } from '../types'
+import type { Tarea, EstadoTarea, PrioridadTarea, DetalleMaterial, ManoDeObra } from '../types'
 import type { CreateDetalleMaterialInput, CreateManoDeObraInput, CreateTareaInput, UpdateTareaInput } from '../types/inputs'
 import { motion, AnimatePresence } from 'motion/react'
 import { useTareaPanel } from '@/hooks/useTareaPanel'
 import MaterialesSection from './MaterialesSection'
 import ManoDeObraSection from './ManoDeObraSection'
 import SectionLabel from './ui/section-label'
+import { formatFechaCalendario } from '@/utils/fecha'
 
 interface Props {
   open: boolean
@@ -12,7 +13,8 @@ interface Props {
   obraId: number
   totalTareas: number
   onClose: () => void
-  onCreate: (data: CreateTareaInput) => Promise<void>
+  onCreate: (data: CreateTareaInput) => Promise<Tarea>
+  onCreated?: (tarea: Tarea) => void
   onUpdate: (id: number, data: UpdateTareaInput) => Promise<void>
   onDelete: (id: number) => Promise<void>
   loading: boolean
@@ -21,18 +23,20 @@ interface Props {
   onPrevious: () => void
   onAgregarMaterial: (tareaId: number, data: CreateDetalleMaterialInput) => Promise<DetalleMaterial>
   onEditarMaterial?: (tareaId: number, detalleId: number, data: CreateDetalleMaterialInput) => Promise<void>
-  onAgregarManoDeObra?: (tareaId: number, data: CreateManoDeObraInput) => Promise<void>
+  onAgregarManoDeObra: (tareaId: number, data: CreateManoDeObraInput) => Promise<ManoDeObra>
   onEditarManoDeObra?: (tareaId: number, manoDeObraId: number, data: CreateManoDeObraInput) => Promise<void>
+  abrirEnEdicion: boolean
 }
 
 export default function TareaPanel({
   open, tarea, obraId, totalTareas,
-  onClose, onCreate, onUpdate, 
+  onClose, onCreate, onCreated, onUpdate, 
   onDelete, loading, onCambiarEstado,
    onNext, onPrevious, onAgregarMaterial, 
    onEditarMaterial, 
    onAgregarManoDeObra, 
-   onEditarManoDeObra
+   onEditarManoDeObra,
+   abrirEnEdicion
 }: Props) {
  
  
@@ -45,7 +49,19 @@ const {
   estado, setEstado,
   prioridad, setPrioridad,
   handleSubmit,
-} = useTareaPanel({ tarea, obraId, open, onClose, onCreate, onUpdate, onCambiarEstado, onNext, onPrevious })   
+} = useTareaPanel({ tarea, 
+  obraId, 
+  open, 
+  onClose, 
+  onCreate,
+  onCreated, 
+  onUpdate, 
+  onCambiarEstado, 
+  onNext, 
+  onPrevious,
+  abrirEnEdicion
+ })
+  
 
 const PRIORIDAD_COLOR: Record<PrioridadTarea, string> = {
   ALTA: '#EF4444',     // rojo
@@ -123,6 +139,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
 
             {/* Contenido */}
             <div className="flex-1 overflow-y-auto px-8 py-10 space-y-8">
+              <div className="relative border border-black/[0.06] bg-gray-50/30 rounded-sm p-6 space-y-8">
               {/* Título */}
               <div className="space-y-3">
                 {isEditing ? (
@@ -172,8 +189,9 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
                     />
                   ) : (
                     <div className="text-[13px] text-[#333] font-bold py-1">
-                      {fechaInicio ? new Date(fechaInicio).toLocaleDateString('es', { day: '2-digit', month: 'long', year: 'numeric' }) : 'No programado'}
+                      {fechaInicio ? formatFechaCalendario(fechaInicio) : 'No programado'}
                     </div>
+                    
                   )}
                 </div>
                 <div className="space-y-3">
@@ -187,7 +205,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
                     />
                   ) : (
                     <div className="text-[13px] text-[#333] font-bold py-1">
-                      {fechaFin ? new Date(fechaFin).toLocaleDateString('es', { day: '2-digit', month: 'long', year: 'numeric' }) : 'No programado'}
+                      {fechaFin ? formatFechaCalendario(fechaFin) : 'No programado'}
                     </div>
                   )}
                 </div>
@@ -258,16 +276,29 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
                   )}
                 </div>
               </div>
-                  <MaterialesSection
-                    tarea={tarea}
-                    isEditing={isEditing}
-                    onAgregarMaterial={onAgregarMaterial}
-                  />
-                  <ManoDeObraSection
-                    tarea={tarea}
-                    isEditing={isEditing}
-                  />
+              </div>
+{isNew ? (
+  <div className="border border-dashed border-black/[0.08] rounded-sm p-4 bg-gray-50/30">
+    <p className="text-[12px] text-[#6B7280] italic">
+      Guarda la tarea primero para poder agregar materiales y mano de obra.
+    </p>
+  </div>
+) : (
+  <>
+    <MaterialesSection
+      tarea={tarea}
+      isEditing={isEditing}
+      onAgregarMaterial={onAgregarMaterial}
+    />
 
+    <ManoDeObraSection
+      tarea={tarea}
+      isEditing={isEditing}
+      onAgregarManoDeObra={onAgregarManoDeObra}
+    />
+  </>
+)
+}
 
 
 

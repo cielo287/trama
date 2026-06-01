@@ -21,7 +21,7 @@ export function useObras() {
     setActionLoading(true)
     setError(null)
     try {
-      const nueva = await createObra(nombre)
+      const nueva = await createObra({ nombre })
       setObras(prev => [...prev, nueva])
     } catch {
       setError('Error al crear la obra')
