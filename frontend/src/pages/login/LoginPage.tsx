@@ -12,12 +12,7 @@ export default function LoginPage() {
     e.preventDefault()
     await login(email, password)
   }
-  const poema = `De un tapiz, que propone a la mirada
-    Un caos de colores y de líneas
-    Irresponsables, un azar y un vértigo
-    Pero un orden secreto lo gobierna.`
 
-  const typedText = useTypewriter(poema,50)
 
   return (
     <div className="relative min-h-screen bg-[#F8F6F1] flex items-center overflow-hidden">
@@ -82,15 +77,6 @@ export default function LoginPage() {
       trama.
     </h1>
 
-    {/* Poema */}
-    <p
-      className="absolute left-0 top-[145px] text-[#4B5563] text-[13px] leading-7 tracking-wide whitespace-pre-line max-w-[420px]"
-      style={{ fontFamily: 'Menlo, Monaco, Consolas, monospace' }}
-    >
-      {typedText}
-      <span className="animate-pulse">|</span>
-    </p>
-
   </div>
 </div>
         
@@ -116,7 +102,7 @@ export default function LoginPage() {
           autoComplete="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
-          className="field-input w-full bg-transparent border-b border-[#333333] py-2 text-base outline-none focus:border-[#A44A3F] transition-all"
+          className="field-input w-full bg-transparent border-b border-[#333333] py-2 text-base outline-none focus:border-[#A44A3F] transition-all font-mono"
         />
       </div>
 
@@ -129,7 +115,7 @@ export default function LoginPage() {
           autoComplete="current-password"
           value={password}
           onChange={e => setPassword(e.target.value)}
-          className="field-input w-full bg-transparent border-b border-[#333333] py-2 text-base outline-none focus:border-[#A44A3F] transition-all"
+          className="field-input w-full bg-transparent border-b border-[#333333] py-2 text-base outline-none focus:border-[#A44A3F] transition-all font-mono"
         />
       </div>
 

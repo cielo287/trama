@@ -28,8 +28,17 @@ export default function ManoDeObraForm({
     })
   }
 
-  return (
-    <div className="space-y-3">
+return (
+  <div
+    className="space-y-3"
+    onKeyDown={e => {
+      if (e.key === 'Enter') {
+        e.stopPropagation()
+        // Si además querés que Enter guarde la MDO:
+        handleSave()
+      }
+    }}
+  >
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-[10px] uppercase tracking-[0.15em] text-[#6B7280] mb-1">
