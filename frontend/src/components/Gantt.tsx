@@ -36,17 +36,27 @@ const ESTADO_COLOR: Record<string, string> = {
 
 interface Props {
   tareas: Tarea[]
+  fecha: Date
   selectedTareaId?: number | null
   onUpdateTareas: (nuevasTareas: Tarea[]) => void
   onTareaClick: (tarea: Tarea) => void
   onNuevaTarea: () => void
+  onFechaChange: (nuevaFecha: Date) => void
 }
 
-export default function Gantt({ tareas, selectedTareaId, onUpdateTareas, onTareaClick, onNuevaTarea }: Props) {
+export default function Gantt({ 
+  tareas, 
+  fecha,
+  onFechaChange,
+  selectedTareaId, 
+  onUpdateTareas, 
+  onTareaClick, 
+  onNuevaTarea,
+ }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
   
   const {
-    fecha,
+    //fecha,
     dias,
     totalDays,
     tareasConFecha,
@@ -58,7 +68,7 @@ export default function Gantt({ tareas, selectedTareaId, onUpdateTareas, onTarea
     redimensionarTarea,
     desplazarTarea,
     asignarFechaClick
-  } = useGantt({ tareas, onUpdateTareas })
+  } = useGantt({ tareas, onUpdateTareas, fecha, onFechaChange })
 
   const mesLabel = format(fecha, 'MMMM yyyy', { locale: es })
     .replace(/^\w/, c => c.toUpperCase())
@@ -226,15 +236,6 @@ export default function Gantt({ tareas, selectedTareaId, onUpdateTareas, onTarea
           </h2>
         </div>
         
-        <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-lg border border-black/[0.05]">
-          <button onClick={() => navegarMes('prev')} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-[#6B7280] hover:text-[#A44A3F]">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
-          </button>
-          <div className="text-[11px] tracking-[0.1em] uppercase text-[#374151] font-bold px-4 min-w-[140px] text-center">{mesLabel}</div>
-          <button onClick={() => navegarMes('next')} className="p-1.5 hover:bg-white hover:shadow-sm rounded-md transition-all text-[#6B7280] hover:text-[#A44A3F]">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6"/></svg>
-          </button>
-        </div>
       </div>
 
       {/* Area de scroll principal */}

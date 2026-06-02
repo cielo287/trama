@@ -22,6 +22,12 @@ import {
   type EstadoTarea
 } from '../types'
 
+import {
+  startOfMonth,
+  endOfMonth
+} from 'date-fns'
+
+
 const COLUMNAS: EstadoTarea[] = [
   'PENDIENTE',
   'EN_PROCESO',
@@ -31,6 +37,7 @@ const COLUMNAS: EstadoTarea[] = [
 
 interface UseKanbanProps {
   tareas: Tarea[]
+  fecha: Date
 
   onUpdateTareas: (nuevasTareas: Tarea[]) => void
 
@@ -42,6 +49,7 @@ interface UseKanbanProps {
 
 export function useKanban({
   tareas,
+  fecha,
   onUpdateTareas,
   onEstadoChange
 }: UseKanbanProps) {
@@ -60,12 +68,34 @@ export function useKanban({
       coordinateGetter: sortableKeyboardCoordinates
     })
   )
+  const inicioMes = startOfMonth(fecha)
+const finMes = endOfMonth(fecha)
+
+const tareasFiltradas = useMemo(() => {
+  return tareas.filter(t => {
+
+    if (!t.fechaInicio) {
+      return true
+    }
+
+    const inicio = parseFecha(t.fechaInicio)
+
+    const fin = t.fechaFin
+      ? parseFecha(t.fechaFin)
+      : inicio
+
+    return (
+      inicio <= finMes &&
+      fin >= inicioMes
+    )
+  })
+}, [tareas, inicioMes, finMes])
 
   const tareasPorEstado = useMemo(() => {
 
     return COLUMNAS.reduce((acc, col) => {
 
-      acc[col] = tareas
+      acc[col] = tareasFiltradas
         .filter(t => t.estado === col)
         .sort(
           (a, b) =>
@@ -77,7 +107,7 @@ export function useKanban({
 
     }, {} as Record<EstadoTarea, Tarea[]>)
 
-  }, [tareas])
+  }, [tareasFiltradas])
 
   const collisionDetectionStrategy: CollisionDetection = (
     args
@@ -112,6 +142,8 @@ export function useKanban({
       setActiveTarea(tarea)
     }
   }
+
+  
 
   /**
    * SOLO VISUAL
@@ -210,6 +242,16 @@ export function useKanban({
       onUpdateTareas(reordered)
     }
   }
+
+  function parseFecha(fechaStr: string) {
+  const [y, m, d] =
+    fechaStr.slice(0, 10)
+      .split('-')
+      .map(Number)
+
+  return new Date(y, m - 1, d)
+}
+
 
   return {
     columns: COLUMNAS,

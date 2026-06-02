@@ -7,6 +7,7 @@ import { useTareas } from '@/hooks/useTareas'
 import Gantt from '@/components/Gantt'
 import TareaPanel from '@/components/TareaPanel'
 import Kanban from '@/components/Kanban'
+import SelectorMes from '@/components/SelectorMes'
 
 type Seccion = 'tareas' | 'cronograma' | 'presupuesto' | 'metricas' | 'archivos'
 
@@ -32,8 +33,10 @@ export default function ObraPage() {
   useState<number | null>(null)
   const [tareaIndex, setTareaIndex] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<'gantt' | 'kanban'>('gantt')
-  
+  const [fechaSeleccionada, setFechaSeleccionada] =
+  useState(new Date())
   const [abrirEnEdicion, setAbrirEnEdicion] = useState(false)
+
   
   const tareaSeleccionada =
   tareas.find(t => t.id === tareaSeleccionadaId) ?? null
@@ -179,29 +182,51 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
     : <div className="flex flex-col gap-4 h-full">
         {/* Selector de vista */}
         <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-bold tracking-tighter text-[#333] mb-1 font-mono">
-            {obra.nombre}
-          </h3>
-          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-md border border-black/[0.05]">
-            <button
-              onClick={() => setViewMode('kanban')}
-              className={`px-4 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-all ${viewMode === 'kanban' ? 'bg-white shadow-sm text-[#A44A3F]' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-              Tablero
-            </button>
-            <button
-              onClick={() => setViewMode('gantt')}
-              className={`px-4 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-all ${viewMode === 'gantt' ? 'bg-white shadow-sm text-[#A44A3F]' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-              Cronograma
-            </button>
-          </div>
-        </div>
+  <h3 className="text-2xl font-bold tracking-tighter text-[#333] mb-1 font-mono">
+    {obra.nombre}
+  </h3>
+
+  <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-md border border-black/[0.05]">
+      <button
+        onClick={() => setViewMode('kanban')}
+        className={`px-4 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-all ${
+          viewMode === 'kanban'
+            ? 'bg-white shadow-sm text-[#A44A3F]'
+            : 'text-gray-400 hover:text-gray-600'
+        }`}
+      >
+        Tablero
+      </button>
+
+      <button
+        onClick={() => setViewMode('gantt')}
+        className={`px-4 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-all ${
+          viewMode === 'gantt'
+            ? 'bg-white shadow-sm text-[#A44A3F]'
+            : 'text-gray-400 hover:text-gray-600'
+        }`}
+      >
+        Cronograma
+      </button>
+    </div>
+    
+    <SelectorMes
+      fecha={fechaSeleccionada}
+      onChange={setFechaSeleccionada}
+    />
+
+
+  </div>
+</div>
+         
 
         {/* Vista */}
         {viewMode === 'gantt' && (
           <Gantt
             tareas={tareas ?? []}
+            fecha={fechaSeleccionada}
+            onFechaChange={setFechaSeleccionada}
             onTareaClick={abrirEditarTarea}
             onNuevaTarea={abrirNuevaTarea}
             onUpdateTareas={handleUpdateTareas}
@@ -210,6 +235,7 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         {viewMode === 'kanban' && (
           <Kanban
             tareas={tareas ?? []}
+            fecha={fechaSeleccionada}
             onUpdateTareas={reordenar}
             onCambiarEstado={cambiarEstado}
             onTareaClick={abrirEditarTarea}

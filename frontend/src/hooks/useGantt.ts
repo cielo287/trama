@@ -12,11 +12,13 @@ import type { Tarea } from '../types'
 
 interface UseGanttProps {
   tareas: Tarea[]
+  fecha: Date
+  onFechaChange: (nuevaFecha: Date) => void
   onUpdateTareas: (nuevasTareas: Tarea[]) => void
 }
 
-export function useGantt({ tareas, onUpdateTareas }: UseGanttProps) {
-  const [fecha, setFecha] = useState(new Date())
+export function useGantt({ tareas, onUpdateTareas, fecha, onFechaChange }: UseGanttProps) {
+  
 
   const config = {
     minColWidth: 40,
@@ -33,9 +35,18 @@ export function useGantt({ tareas, onUpdateTareas }: UseGanttProps) {
   const tareasConFecha = useMemo(() => tareas.filter(t => t.fechaInicio), [tareas])
   const tareasSinFecha = useMemo(() => tareas.filter(t => !t.fechaInicio), [tareas])
 
-  const navegarMes = (direccion: 'prev' | 'next') => {
-    setFecha(f => new Date(f.getFullYear(), f.getMonth() + (direccion === 'next' ? 1 : -1), 1))
-  }
+const navegarMes = (
+  direccion: 'prev' | 'next'
+) => {
+  onFechaChange(
+    new Date(
+      fecha.getFullYear(),
+      fecha.getMonth() +
+        (direccion === 'next' ? 1 : -1),
+      1
+    )
+  )
+}
 
   const parseFecha = (fechaStr: string) => {
     const [y, m, d] = fechaStr.slice(0, 10).split('-').map(Number)

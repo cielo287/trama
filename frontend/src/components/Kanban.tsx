@@ -61,6 +61,7 @@ const PRIORIDAD_COLORS: Record<PrioridadTarea, { bg: string, text: string, borde
 
 interface Props {
   tareas: Tarea[];
+  fecha: Date;
   onUpdateTareas: (nuevasTareas: Tarea[]) => void;
   onCambiarEstado?: (
     id: number,
@@ -73,6 +74,7 @@ interface Props {
 
 export default function Kanban({
   tareas,
+  fecha,
   onUpdateTareas,
   onCambiarEstado,
   onTareaClick,
@@ -89,6 +91,7 @@ export default function Kanban({
     handleDragEnd,
   } = useKanban({
     tareas,
+    fecha,
     onUpdateTareas,
     onEstadoChange: (id, estado) => onCambiarEstado?.(id, estado),
   });
