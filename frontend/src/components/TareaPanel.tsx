@@ -220,7 +220,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
   <div className="flex items-center gap-2 py-1">
     <div
       className="w-2 h-2 rounded-full"
-      style={{ background: '#67E8F9' }} // PENDIENTE
+      style={{ background: '#CDC5C5' }} // PENDIENTE
     />
     <span className="text-[11px] font-bold uppercase tracking-widest">
       PENDIENTE

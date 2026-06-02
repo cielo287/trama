@@ -14,17 +14,23 @@ export default function MaterialForm({
   const [cantidad, setCantidad] = useState(0)
   const [precioUnitario, setPrecioUnitario] = useState(0)
   const [unidadDeMedida, setUnidadDeMedida] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleSave = async () => {
     console.log({ nombre, cantidad, precioUnitario, unidadDeMedida })
-    if (!nombre.trim()) return
+    if (!nombre.trim() || loading) return
 
-    await onSave({
-      nombre,
-      cantidad,
-      precioUnitario,
-      unidadDeMedida,
-    })
+    setLoading(true)
+    try {
+      await onSave({
+        nombre,
+        cantidad,
+        precioUnitario,
+        unidadDeMedida,
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
 return (
@@ -131,42 +137,56 @@ return (
       </div>
 
       <div className="flex items-center gap-4 pt-1">
-        <button
-          type="button"
-          onClick={handleSave}
-          className="
-            flex items-center gap-2
-            text-[#A44A3F]
-            hover:opacity-60
-            transition-opacity
-          "
-        >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-          >
-            <circle
-              cx="6"
-              cy="6"
-              r="5.5"
-              stroke="currentColor"
-            />
-            <path
-              d="M3.5 6.2L5.2 8L8.8 4.3"
-              stroke="currentColor"
-              strokeWidth="1.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+<button
+  type="button"
+  onClick={handleSave}
+  disabled={loading}
+  className="
+    flex items-center gap-2
+    text-[#A44A3F]
+    hover:opacity-60
+    transition-opacity
+    disabled:opacity-40
+  "
+>
+  {loading ? (
+    <svg
+      className="animate-spin"
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <circle
+        cx="12" cy="12" r="10"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeOpacity="0.25"
+      />
+      <path
+        d="M12 2a10 10 0 0 1 10 10"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+  ) : (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+      <circle cx="6" cy="6" r="5.5" stroke="currentColor" />
+      <path
+        d="M3.5 6.2L5.2 8L8.8 4.3"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )}
 
-          <span 
-          className="text-[11px] uppercase tracking-[0.2em] font-bold">
-            Guardar
-          </span>
-        </button>
+  <span className="text-[11px] uppercase tracking-[0.2em] font-bold">
+    {loading ? 'Guardando...' : 'Guardar'}
+  </span>
+</button>
 
         <button
           type="button"

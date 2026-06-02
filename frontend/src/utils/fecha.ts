@@ -20,3 +20,19 @@ export function formatFechaCalendario(fecha: string) {
     }
   )
 }
+
+function formatFechaRango(
+  fechaInicio: string | null | undefined,
+  fechaFin: string | null | undefined
+): string {
+  const fmt = (f: string) =>
+    parseFechaCalendario(f).toLocaleDateString('es-AR', {
+      day: '2-digit',
+      month: 'short',
+    })
+
+  if (fechaInicio && fechaFin) return `${fmt(fechaInicio)} → ${fmt(fechaFin)}`
+  if (fechaInicio) return `Desde ${fmt(fechaInicio)}`
+  if (fechaFin) return `Hasta ${fmt(fechaFin)}`
+  return ''
+}
