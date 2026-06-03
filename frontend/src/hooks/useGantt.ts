@@ -32,7 +32,29 @@ export function useGantt({ tareas, onUpdateTareas, fecha, onFechaChange }: UseGa
   const dias = useMemo(() => eachDayOfInterval({ start, end }), [start, end])
   const totalDays = dias.length
 
-  const tareasConFecha = useMemo(() => tareas.filter(t => t.fechaInicio), [tareas])
+  const parseFecha = (fechaStr: string) => {
+  const [y, m, d] = fechaStr.slice(0, 10).split('-').map(Number)
+    return new Date(y, m - 1, d)
+  }
+
+
+  const tareasConFecha = useMemo(() => {
+  return tareas.filter(t => {
+    if (!t.fechaInicio) return false
+
+    const inicio = parseFecha(t.fechaInicio)
+
+    const fin = t.fechaFin
+      ? parseFecha(t.fechaFin)
+      : inicio
+
+    return (
+      inicio <= end &&
+      fin >= start
+    )
+  })
+}, [tareas, start, end])
+
   const tareasSinFecha = useMemo(() => tareas.filter(t => !t.fechaInicio), [tareas])
 
 const navegarMes = (
@@ -48,10 +70,7 @@ const navegarMes = (
   )
 }
 
-  const parseFecha = (fechaStr: string) => {
-    const [y, m, d] = fechaStr.slice(0, 10).split('-').map(Number)
-    return new Date(y, m - 1, d)
-  }
+
 
   const getBarProps = (tarea: Tarea) => {
     if (!tarea.fechaInicio) return null
