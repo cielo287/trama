@@ -9,6 +9,7 @@ import TareaPanel from '@/components/TareaPanel'
 import Kanban from '@/components/Kanban'
 import SelectorMes from '@/components/SelectorMes'
 
+
 type Seccion = 'tareas' | 'cronograma' | 'presupuesto' | 'metricas' | 'archivos'
 
 export default function ObraPage() {
@@ -26,7 +27,13 @@ export default function ObraPage() {
      cambiarEstado,
      creating, 
      updating,
-    agregarMaterial, agregarManoDeObra } = useTareas(Number(id))
+    agregarMaterial, 
+    agregarManoDeObra,
+    editarMaterial,
+    editarMdo,
+    borrarDetalleMaterial,
+    eliminarMdo
+  } = useTareas(Number(id))
 
   const [panelAbierto, setPanelAbierto] = useState(false)
   const [tareaSeleccionadaId, setTareaSeleccionadaId] =
@@ -269,6 +276,11 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         onAgregarMaterial={agregarMaterial}
         onAgregarManoDeObra={agregarManoDeObra}
         abrirEnEdicion={abrirEnEdicion}
+        onEditarMaterial={editarMaterial}
+        onEditarManoDeObra={editarMdo}
+        onBorrarDetalleMaterial={borrarDetalleMaterial}
+        onEliminarManoDeObra={eliminarMdo}
+        
       />
     </div>
   )

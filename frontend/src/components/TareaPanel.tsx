@@ -22,10 +22,12 @@ interface Props {
   onNext: () => void
   onPrevious: () => void
   onAgregarMaterial: (tareaId: number, data: CreateDetalleMaterialInput) => Promise<DetalleMaterial>
-  onEditarMaterial?: (tareaId: number, detalleId: number, data: CreateDetalleMaterialInput) => Promise<void>
+  onEditarMaterial: (tareaId: number, detalleId: number, data: CreateDetalleMaterialInput) => Promise<DetalleMaterial>
   onAgregarManoDeObra: (tareaId: number, data: CreateManoDeObraInput) => Promise<ManoDeObra>
-  onEditarManoDeObra?: (tareaId: number, manoDeObraId: number, data: CreateManoDeObraInput) => Promise<void>
+  onEditarManoDeObra: (tareaId: number, manoDeObraId: number, data: CreateManoDeObraInput) => Promise<ManoDeObra>
   abrirEnEdicion: boolean
+  onBorrarDetalleMaterial: (tareaId: number, detalleId: number) => Promise<void>
+  onEliminarManoDeObra: (tareaId: number, manoDeObraId: number) => Promise<void>
 }
 
 export default function TareaPanel({
@@ -36,7 +38,9 @@ export default function TareaPanel({
    onEditarMaterial, 
    onAgregarManoDeObra, 
    onEditarManoDeObra,
-   abrirEnEdicion
+   abrirEnEdicion,
+   onBorrarDetalleMaterial,
+   onEliminarManoDeObra
 }: Props) {
  
  
@@ -289,12 +293,16 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
       tarea={tarea}
       isEditing={isEditing}
       onAgregarMaterial={onAgregarMaterial}
+      onEditarMaterial={onEditarMaterial}
+      onBorrarDetalleMaterial={onBorrarDetalleMaterial}
     />
 
     <ManoDeObraSection
       tarea={tarea}
       isEditing={isEditing}
       onAgregarManoDeObra={onAgregarManoDeObra}
+      onEditarManoDeObra={onEditarManoDeObra}
+      onEliminarManoDeObra={onEliminarManoDeObra}
     />
   </>
 )

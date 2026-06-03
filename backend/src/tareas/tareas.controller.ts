@@ -94,4 +94,22 @@ export class TareasController {
   ) {
     return this.tareasService.editarManoDeObra(+id, +manoDeObraId, updateManoDeObraDto, user.userId);
   }
+
+  @Delete(':id/detalle-material/:detalleMaterialId')
+  async eliminarDetalleMaterial(
+    @Param('id') id: string,
+    @Param('detalleMaterialId') detalleMaterialId: string,
+    @CurrentUser() user: UserPayload
+  ) {
+    return this.tareasService.eliminarDetalleMaterial(+id, +detalleMaterialId, user.userId);
+  }
+
+  @Delete(':id/mano-de-obra/:manoDeObraId')
+  async eliminarManoDeObra(
+    @Param('id') id: string,
+    @Param('manoDeObraId') manoDeObraId: string,
+    @CurrentUser() user: UserPayload
+  ) {
+    return this.tareasService.eliminarManoDeObra(+id, +manoDeObraId, user.userId);
+  } 
 }

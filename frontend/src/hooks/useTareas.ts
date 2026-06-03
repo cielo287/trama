@@ -1,5 +1,17 @@
 import { useState, useEffect } from 'react'
-import { getTareasByObra, createTarea, updateTarea, deleteTarea, bulkUpdateOrder, cambiarEstadoTarea, crearDetalleMaterial, crearManoDeObra } from '@/api/tareas'
+import { getTareasByObra, 
+  createTarea, 
+  updateTarea, 
+  deleteTarea, 
+  bulkUpdateOrder, 
+  cambiarEstadoTarea, 
+  crearDetalleMaterial, 
+  crearManoDeObra,
+  editarDetalleMaterial,
+  editarManoDeObra,
+  eliminarManoDeObra,
+  eliminarDetalleMaterial
+ } from '@/api/tareas'
 import type { Tarea, EstadoTarea } from '@/types'
 import type { CreateDetalleMaterialInput, CreateManoDeObraInput, CreateTareaInput, UpdateTareaInput } from '@/types/inputs'
 
@@ -174,8 +186,81 @@ async function agregarManoDeObra(
   return nueva
 }
 
+async function editarMaterial(
+  tareaId: number,
+  detalleId: number,
+  data: CreateDetalleMaterialInput
+) {
+  const actualizado =
+    await editarDetalleMaterial(
+      tareaId,
+      detalleId,
+      data
+    )
 
+setTareas(prev =>
+  prev.map(t =>
+    t.id === tareaId
+      ? {
+          ...t,
+          detallesMaterial: t.detallesMaterial?.map(d =>
+            d.id === detalleId
+              ? { ...d, ...actualizado }  // d como base, actualizado encima
+              : d
+          )
+        }
+      : t
+  )
+)
+
+  return actualizado
+}
   
+async function editarMdo(
+  tareaId: number,
+  manoDeObraId: number,
+  data: CreateManoDeObraInput
+) {
+  const actualizada = await editarManoDeObra(tareaId, manoDeObraId, data)
 
-  return { tareas, loading, actionLoading, error, creating,  updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial, agregarManoDeObra }
+  setTareas(prev =>
+    prev.map(t =>
+      t.id === tareaId
+        ? {
+            ...t,
+            manoDeObra: t.manoDeObra?.map(m =>
+              m.id === manoDeObraId
+                ? { ...m, ...actualizada }
+                : m
+            )
+          }
+        : t
+    )
+  )
+
+  return actualizada
+}
+
+async function eliminarMdo(tareaId: number, manoDeObraId: number) {
+  await eliminarManoDeObra(tareaId, manoDeObraId)
+  setTareas(prev =>
+    prev.map(t =>
+      t.id === tareaId
+        ? { ...t, manoDeObra: t.manoDeObra?.filter(m => m.id !== manoDeObraId) }
+        : t
+    )
+  )
+}
+
+async function borrarDetalleMaterial(tareaId: number, detalleId: number) {
+  await eliminarDetalleMaterial(tareaId, detalleId)
+  setTareas(prev =>
+    prev.map(t =>
+      t.id === tareaId
+        ? { ...t, detallesMaterial: t.detallesMaterial?.filter(d => d.id !== detalleId) }
+        : t
+    )
+  )
+}
+  return { tareas, loading, actionLoading, error, creating,  updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial, agregarManoDeObra, editarMaterial, editarMdo, borrarDetalleMaterial, eliminarMdo }
 }

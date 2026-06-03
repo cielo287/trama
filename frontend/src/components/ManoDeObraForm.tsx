@@ -2,6 +2,12 @@ import { useState } from 'react'
 import type { CreateManoDeObraInput } from '@/types/inputs'
 
 interface Props {
+    initialData?: {
+    nombre: string
+    apellido: string
+    telefono: string
+    precio: number
+  }
   onCancel: () => void
   onSave: (
     data: CreateManoDeObraInput
@@ -11,11 +17,12 @@ interface Props {
 export default function ManoDeObraForm({
   onCancel,
   onSave,
+  initialData,
 }: Props) {
-  const [nombre, setNombre] = useState('')
-  const [apellido, setApellido] = useState('')
-  const [telefono, setTelefono] = useState('')
-  const [precio, setPrecio] = useState(0)
+  const [nombre, setNombre] = useState(initialData?.nombre ?? '')
+  const [apellido, setApellido] = useState(initialData?.apellido ?? '')
+  const [telefono, setTelefono] = useState(initialData?.telefono ?? '')
+  const [precio, setPrecio] = useState(initialData?.precio ?? 0)
   const [loading, setLoading] = useState(false)
 
   const handleSave = async () => {

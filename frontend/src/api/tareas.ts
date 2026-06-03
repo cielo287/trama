@@ -73,3 +73,13 @@ export const editarManoDeObra = (tareaId: number, manoDeObraId: number, data: Cr
         },
         body: JSON.stringify(data)
     })
+
+export const eliminarDetalleMaterial = (tareaId: number, detalleId: number) =>
+    apiFetch(`/api/tareas/${tareaId}/detalle-material/${detalleId}`, {
+        method: 'DELETE'
+    })
+
+export const eliminarManoDeObra = (tareaId: number, manoDeObraId: number) =>
+    apiFetch(`/api/tareas/${tareaId}/mano-de-obra/${manoDeObraId}`, {
+        method: 'DELETE'
+    })

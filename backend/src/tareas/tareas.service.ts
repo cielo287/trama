@@ -439,6 +439,30 @@ async cambiarEstado(tareaId: number, nuevoEstado: EstadoTarea, usuarioId: number
     });
   }
 
+  async eliminarDetalleMaterial(tareaId: number, detalleMaterialId: number, usuarioId: number) {
+    const detalle = await this.prisma.detalleMaterial.findFirst({
+      where: { tareaId, id: detalleMaterialId, tarea: { obra: { usuarioId } } }
+    });
+    if (!detalle) {
+      throw new NotFoundException(`Detalle de material con id ${detalleMaterialId} no encontrado o no tenés acceso`);
+    }
+    return this.prisma.detalleMaterial.delete({
+      where: { id: detalleMaterialId }
+    });
+  }
+
+  async eliminarManoDeObra(tareaId: number, manoDeObraId: number, usuarioId: number) {
+    const mano = await this.prisma.manoDeObra.findFirst({
+      where: { tareaId, id: manoDeObraId, tarea: { obra: { usuarioId } } }
+    });
+    if (!mano) {
+      throw new NotFoundException(`Mano de obra con id ${manoDeObraId} no encontrada o no tenés acceso`);
+    }
+    return this.prisma.manoDeObra.delete({
+      where: { id: manoDeObraId }
+    });
+  }
+
   private normalizarTelefono(telefono: string): string {
     // Eliminar espacios, guiones y paréntesis
     return telefono.replace(/[\s\-()]/g, '');

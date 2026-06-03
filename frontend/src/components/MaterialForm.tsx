@@ -2,19 +2,34 @@ import { useState } from 'react'
 import { CreateDetalleMaterialInput } from "@/types/inputs"
 
 interface Props {
+  initialData?: 
+  {
+    nombre: string
+    cantidad: number
+    precioUnitario: number
+    unidadDeMedida: string
+  } 
   onCancel: () => void
   onSave: (data: CreateDetalleMaterialInput) => void | Promise<void>
 }
 
 export default function MaterialForm({
+  initialData,
   onCancel,
   onSave,
-}: Props) {
-  const [nombre, setNombre] = useState('')
-  const [cantidad, setCantidad] = useState(0)
-  const [precioUnitario, setPrecioUnitario] = useState(0)
-  const [unidadDeMedida, setUnidadDeMedida] = useState('')
-  const [loading, setLoading] = useState(false)
+  }: Props) {
+    const [nombre, setNombre] =
+    useState(initialData?.nombre ?? '')
+
+    const [cantidad, setCantidad] =
+    useState(initialData?.cantidad ?? 0)
+
+    const [precioUnitario, setPrecioUnitario] =
+    useState(initialData?.precioUnitario ?? 0)
+
+    const [unidadDeMedida, setUnidadDeMedida] =
+    useState(initialData?.unidadDeMedida ?? '')
+    const [loading, setLoading] = useState(false)
 
   const handleSave = async () => {
     console.log({ nombre, cantidad, precioUnitario, unidadDeMedida })
@@ -24,8 +39,8 @@ export default function MaterialForm({
     try {
       await onSave({
         nombre,
-        cantidad,
-        precioUnitario,
+        cantidad: Number(cantidad),
+        precioUnitario: Number(precioUnitario),
         unidadDeMedida,
       })
     } finally {
