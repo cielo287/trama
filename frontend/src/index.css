@@ -26,3 +26,11 @@
   background: #A44A3F;
   color: white;
 }
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}

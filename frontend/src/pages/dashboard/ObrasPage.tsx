@@ -23,6 +23,7 @@ export default function ObrasPage() {
       </div>
     )
   }
+  
 
   return (
     <div className="h-screen flex flex-col bg-[#F8F6F1]">

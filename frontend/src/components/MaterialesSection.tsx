@@ -4,6 +4,7 @@ import { calcularCostoMateriales } from '@/utils/tarea'
 import SectionLabel from './ui/section-label'
 import MaterialForm from './MaterialForm'
 import type { CreateDetalleMaterialInput } from '@/types/inputs'
+import ConfirmDialog from './ConfirmDialog'
 
 interface Props {
   tarea?: Tarea | null
@@ -45,12 +46,20 @@ export default function MaterialesSection({
     }
   }
 
-  const handleEliminar = async (detalleId: number) => {
-    if (!tarea) return
+  const [detalleAEliminar, setDetalleAEliminar] = useState<number | null>(null)
+  const [eliminando, setEliminando] = useState(false)
+
+  const confirmarEliminar = async () => {
+    if (!tarea || detalleAEliminar === null) return
+
     try {
-      await onBorrarDetalleMaterial(tarea.id, detalleId)
+      setEliminando(true)
+      await onBorrarDetalleMaterial(tarea.id, detalleAEliminar)
+      setDetalleAEliminar(null)
     } catch (error) {
       console.error(error)
+    } finally {
+      setEliminando(false)
     }
   }
 
@@ -100,7 +109,7 @@ export default function MaterialesSection({
                       <button
                         type="button"
                         onClick={() => setEditingId(detalle.id)}
-                        className="p-1 text-[#A44A3F] hover:opacity-70 transition-opacity"
+                        className="p-1 text-[#A44A3F]  hover:text-red-400 transition-opacity"
                         title="Editar"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -110,8 +119,8 @@ export default function MaterialesSection({
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleEliminar(detalle.id)}
-                        className="p-1 text-[#6B7280] hover:text-red-400 transition-colors"
+                        onClick={() => setDetalleAEliminar(detalle.id)}
+                        className="p-1 text-[#A44A3F] hover:text-red-400 transition-colors"
                         title="Eliminar"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -150,6 +159,16 @@ export default function MaterialesSection({
           + Agregar material
         </button>
       )}
+
+      <ConfirmDialog
+        open={detalleAEliminar !== null}
+        title="Eliminar Detalle de Material"
+        message=""
+        confirmText="Eliminar"
+        onConfirm={confirmarEliminar}
+        loading={eliminando}
+        onCancel={() => setDetalleAEliminar(null)}
+    />
     </div>
   )
 }

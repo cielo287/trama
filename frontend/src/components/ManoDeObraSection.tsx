@@ -4,6 +4,7 @@ import { calcularCostoManoDeObra } from '@/utils/tarea'
 import SectionLabel from './ui/section-label'
 import ManoDeObraForm from './ManoDeObraForm'
 import type { CreateManoDeObraInput } from '@/types/inputs'
+import ConfirmDialog from './ConfirmDialog'
 
 interface Props {
   tarea?: Tarea | null
@@ -19,7 +20,8 @@ export default function ManoDeObraSection({
   isEditing,
   onAgregarManoDeObra,
   onEditarManoDeObra,
-  onEliminarManoDeObra
+  onEliminarManoDeObra,
+  
 }: Props) {
   const manosDeObra = tarea?.manoDeObra ?? []
 
@@ -49,6 +51,30 @@ export default function ManoDeObraSection({
       console.error(error)
     }
   }
+
+  const [manoAEliminar, setManoAEliminar] = useState<number | null>(null)
+  const [eliminando, setEliminando] = useState(false)
+
+const confirmarEliminar = async () => {
+  if (!tarea || manoAEliminar === null) return
+
+  try {
+    setEliminando(true)
+
+    await onEliminarManoDeObra(
+      tarea.id,
+      manoAEliminar
+    )
+
+    setManoAEliminar(null)
+  } catch (error) {
+    console.error(error)
+  } finally {
+    setEliminando(false)
+  }
+}
+
+
 
 return (
   <div className="border border-black/[0.06] bg-gray-50/30 rounded-sm p-4 space-y-4">
@@ -106,19 +132,19 @@ return (
                           <button
                             type="button"
                             onClick={() => setEditandoId(mano.id)}
-                            className="text-[#6B7280] hover:text-[#A44A3F] transition-colors"
+                            className="text-[#A44A3F] hover:text-red-400 transition-colors"
                           >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                               <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
                               <path d="m15 5 4 4"/>
                             </svg>
                           </button>
                           <button
                             type="button"
-                            onClick={() => tarea && onEliminarManoDeObra(tarea.id, mano.id)}
-                            className="text-[#6B7280] hover:text-red-400 transition-colors"
+                            onClick={() => setManoAEliminar(mano.id)}
+                            className="text-[#A44A3F] hover:text-red-400 transition-colors"
                           >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                               <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
                             </svg>
                           </button>
@@ -150,6 +176,19 @@ return (
         )}
       </>
     )}
+    <ConfirmDialog
+      open={manoAEliminar !== null}
+      title="Eliminar mano de obra"
+      message=""
+      confirmText="Eliminar"
+      loading={eliminando}
+      cancelText="Cancelar"
+      onConfirm={confirmarEliminar}
+      onCancel={() => setManoAEliminar(null)}
+  />
   </div>
 )
+
 }
+
+

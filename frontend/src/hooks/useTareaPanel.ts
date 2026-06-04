@@ -142,7 +142,12 @@ useEffect(() => {
       }
 
       // 2. Atajos exclusivos del Modo Edición
-      if (e.key === 'Enter' && isEditing && (e.ctrlKey || e.metaKey || !(e.target instanceof HTMLTextAreaElement))) {
+      if (
+        e.key.toLowerCase() === 's' &&
+        (e.ctrlKey || e.metaKey) &&
+        isEditing
+      ) {
+        e.preventDefault()
         handleSubmit()
       }
     }
