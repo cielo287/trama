@@ -23,6 +23,8 @@ export interface UpdateTareaInput {
 
 export interface CreateObraInput {
   nombre: string
+  direccion: string
+  cliente: string
 }
 
 export interface CreateManoDeObraInput {

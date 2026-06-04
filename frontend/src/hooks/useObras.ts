@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getObras, createObra, updateObra, deleteObra } from '@/api/obras'
 import type { Obra } from '@/types'
+import { CreateObraInput } from '@/types/inputs'
 
 export function useObras() {
   const [obras, setObras] = useState<Obra[]>([])
@@ -16,33 +17,45 @@ export function useObras() {
       .finally(() => setLoading(false))
   }, [])
 
-  async function crear(nombre: string) {
-    if (actionLoading) return
-    setActionLoading(true)
-    setError(null)
-    try {
-      const nueva = await createObra({ nombre })
-      setObras(prev => [...prev, nueva])
-    } catch {
-      setError('Error al crear la obra')
-    } finally {
-      setActionLoading(false)
-    }
-  }
+async function crear(data: CreateObraInput) {
+  if (actionLoading) return
 
-  async function editar(id: number, nombre: string) {
-    if (actionLoading) return
-    setActionLoading(true)
-    setError(null)
-    try {
-      const actualizada = await updateObra(id, nombre)
-      setObras(prev => prev.map(o => o.id === id ? actualizada : o))
-    } catch {
-      setError('Error al editar la obra')
-    } finally {
-      setActionLoading(false)
-    }
+  setActionLoading(true)
+  setError(null)
+
+  try {
+    const nueva = await createObra(data)
+    setObras(prev => [...prev, nueva])
+  } catch {
+    setError('Error al crear la obra')
+  } finally {
+    setActionLoading(false)
   }
+}
+
+async function editar(
+  id: number,
+  data: CreateObraInput
+) {
+  if (actionLoading) return
+
+  setActionLoading(true)
+  setError(null)
+
+  try {
+    const actualizada = await updateObra(id, data)
+
+    setObras(prev =>
+      prev.map(o =>
+        o.id === id ? actualizada : o
+      )
+    )
+  } catch {
+    setError('Error al editar la obra')
+  } finally {
+    setActionLoading(false)
+  }
+}
 
   async function eliminar(id: number) {
     if (actionLoading) return   

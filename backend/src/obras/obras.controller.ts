@@ -28,7 +28,9 @@ export class ObrasController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateObraDto: UpdateObraDto, @CurrentUser() user: UserPayload) {
+  update(@Param('id') id: string, 
+  @Body() updateObraDto: UpdateObraDto, 
+  @CurrentUser() user: UserPayload) {
     return this.obrasService.update(+id, updateObraDto, user.userId);
   }
 

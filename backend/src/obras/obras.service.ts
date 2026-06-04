@@ -11,6 +11,8 @@ async create(createObraDto: CreateObraDto, usuarioId: number) {
   return this.prisma.obra.create({
     data: {
       nombre: createObraDto.nombre,
+      direccion: createObraDto.direccion,
+      cliente: createObraDto.cliente,
       usuarioId: usuarioId, 
     },
   });

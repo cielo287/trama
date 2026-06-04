@@ -10,6 +10,8 @@ export interface Usuario {
 export interface Obra {
   id: number
   nombre: string
+  direccion?: string
+  cliente?: string
   createdAt: string
   updatedAt: string
   usuarioId: number

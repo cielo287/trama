@@ -14,11 +14,14 @@ export const createObra = (data: CreateObraInput) =>
     body: JSON.stringify(data),
   })
 
-export const updateObra = (id: number, nombre: string) =>
+export const updateObra = (
+  id: number,
+  data: CreateObraInput
+) =>
   apiFetch<Obra>(`${BASE}/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ nombre }),
+    body: JSON.stringify(data),
   })
 
 export const deleteObra = (id: number) =>

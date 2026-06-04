@@ -38,12 +38,15 @@ model RefreshToken {
 model Obra {
   id Int @id @default(autoincrement())
   nombre String
+  direccion String?
+  cliente String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   usuarioId Int
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
   tareas Tarea[]
+
 }
 
 model Tarea {
@@ -68,7 +71,7 @@ model Tarea {
   updatedAt       DateTime      @updatedAt
 
   obraId          Int
-  obra            Obra          @relation(fields: [obraId], references: [id])
+  obra            Obra          @relation(fields: [obraId], references: [id], onDelete: Cascade)
 
   tareaPadreId    Int?
   tareaPadre      Tarea?        @relation("TareaHijos", fields: [tareaPadreId], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -97,7 +100,7 @@ model ImagenTarea {
   url String
 
   tareaId Int
-  tarea Tarea @relation(fields: [tareaId], references: [id])
+  tarea Tarea @relation(fields: [tareaId], references: [id], onDelete: Cascade)
 }
 
 model Material {
@@ -126,7 +129,7 @@ model DetalleMaterial {
   
   // Relación con Tarea
   tareaId        Int
-  tarea          Tarea    @relation(fields: [tareaId], references: [id])
+  tarea          Tarea    @relation(fields: [tareaId], references: [id], onDelete: Cascade)
 }
 
 
@@ -155,5 +158,5 @@ model ManoDeObra {
   
   // Relación con Tarea
   tareaId   Int
-  tarea     Tarea @relation(fields: [tareaId], references: [id])
+  tarea     Tarea @relation(fields: [tareaId], references: [id], onDelete: Cascade)
 }
