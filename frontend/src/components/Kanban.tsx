@@ -53,11 +53,32 @@ const ESTADO_BG_LIGHT: Record<Estado, string> = {
   FINALIZADA: 'bg-[#F1FCE3]',
 };
 
-const PRIORIDAD_COLORS: Record<PrioridadTarea, { bg: string, text: string, border: string }> = {
-  ALTA: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  MEDIA: { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200' },
-  BAJA: { bg: 'bg-zinc-50', text: 'text-zinc-650', border: 'border-zinc-200' },
-};
+const PRIORIDAD_COLORS: Record<
+  PrioridadTarea,
+  { bg: string; text: string; border: string }
+> = {
+  ALTA: {
+    bg: 'bg-red-50',
+    text: 'text-red-700',
+    border: 'border-red-200',
+  },
+  MEDIA: {
+    bg: 'bg-amber-50',
+    text: 'text-amber-700',
+    border: 'border-amber-200',
+  },
+  BAJA: {
+    bg: 'bg-lime-50',
+    text: 'text-lime-700',
+    border: 'border-lime-200',
+  },
+}
+
+const PRIORIDAD_COLOR: Record<PrioridadTarea, string> = {
+  ALTA: '#EF4444',     // rojo
+  MEDIA: '#F59E0B',    // amarillo
+  BAJA: '#84CC16',     // verde
+}
 
 interface Props {
   tareas: Tarea[];

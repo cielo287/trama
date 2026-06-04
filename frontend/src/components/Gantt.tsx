@@ -102,6 +102,12 @@ export default function Gantt({
       opacity: isDragging ? 0.5 : 1,
     }
 
+    const PRIORIDAD_COLOR: Record<string, string> = {
+      ALTA: '#EF4444',
+      MEDIA: '#F59E0B',
+      BAJA: '#84CC16',
+    }
+
     return (
       <div 
         ref={setNodeRef} 
@@ -124,11 +130,38 @@ export default function Gantt({
           </div>
           
           <div onClick={() => onTareaClick(tarea)} style={{ width: config.colTarea - 28 }} className="px-2 flex items-center gap-2 border-r border-black/[0.06] overflow-hidden cursor-pointer">
-          <span className={`font-mono text-[13px] truncate flex-1 transition-colors ${
-            isSelected ? 'text-[#A44A3F] font-bold' : 'text-[#333] group-hover:text-[#A44A3F]'
-            }`}>
-            {tarea.titulo}
-          </span>
+            
+<div className="flex items-center gap-2 flex-1 min-w-0">
+  <span
+    className="px-1.5 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase shrink-0"
+    style={{
+      backgroundColor:
+        tarea.prioridad === 'ALTA'
+          ? '#FEE2E2'
+          : tarea.prioridad === 'MEDIA'
+          ? '#FEF3C7'
+          : '#ECFCCB',
+      color:
+        tarea.prioridad === 'ALTA'
+          ? '#EF4444'
+          : tarea.prioridad === 'MEDIA'
+          ? '#F59E0B'
+          : '#84CC16',
+    }}
+  >
+    {tarea.prioridad}
+  </span>
+
+  <span
+    className={`font-mono text-[14px] truncate flex-1 transition-colors ${
+      isSelected
+        ? 'text-[#A44A3F] font-bold'
+        : 'text-[#333] group-hover:text-[#A44A3F]'
+    }`}
+  >
+    {tarea.titulo}
+  </span>
+</div>
           </div>
           
           <div style={{ width: config.colEncargado }} className="px-4 flex items-center overflow-hidden">

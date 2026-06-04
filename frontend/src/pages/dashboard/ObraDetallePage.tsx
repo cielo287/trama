@@ -189,10 +189,27 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
     : <div className="flex flex-col gap-4 h-full">
         {/* Selector de vista */}
         <div className="flex items-center justify-between">
-  <h3 className="text-2xl font-bold tracking-tighter text-[#333] mb-1 font-mono">
-    {obra.nombre}
-  </h3>
+<div className="space-y-4 mb-5 flex-1 flex flex-col justify-center">
+  <div className="flex items-center gap-3 text-2xl font-light tracking-tight">
+    <button
+      onClick={() => navigate('/')}
+      className="
+        text-[#333333]
+        hover:text-[#A44A3F]
+        transition-colors
+        cursor-pointer
+      "
+    >
+      OBRAS
+    </button>
 
+    <span className="text-[#A44A3F]/40">/</span>
+
+    <span className="text-[#333333] uppercase">
+      {obra.nombre}
+    </span>
+  </div>
+</div>
   <div className="flex items-center gap-4">
         <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-md border border-black/[0.05]">
       <button

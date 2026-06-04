@@ -246,7 +246,7 @@ function ObrasLista({
             {/* Core Card Section: Obra Name */}
             <div className="space-y-4 mb-5 flex-1 flex flex-col justify-center">
               <h3 className="text-3xl font-light text-[#333333] tracking-tight group-hover:text-[#A44A3F] transition-colors duration-300">
-                {obra.nombre}
+                {obra.nombre.toUpperCase()}
               </h3>
 
               {/* Redesigned content containing Address & Client info with crisp icons */}
