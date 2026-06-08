@@ -71,6 +71,8 @@ useEffect(() => {
   return () => window.removeEventListener('pointermove', handleMove)
 }, [drag, moveDrag])
 
+
+
 const toRelative = (clientX: number, clientY: number) => {
   const rect = timelineContainerRef.current?.getBoundingClientRect()
   if (!rect) return { x: clientX, y: clientY }
@@ -101,6 +103,8 @@ const liveLine = drag ? {
     asignarFechaClick
   } = useGantt({ tareas, onUpdateTareas, fecha, onFechaChange })
 
+  
+  
   const mesLabel = format(fecha, 'MMMM yyyy', { locale: es })
     .replace(/^\w/, c => c.toUpperCase())
 
@@ -122,6 +126,8 @@ const liveLine = drag ? {
 
   const barRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
 const [, forceUpdate] = useState(0)
+
+
 
 const getPersistentLines = () => {
   const containerRect = timelineContainerRef.current?.getBoundingClientRect()
@@ -293,12 +299,12 @@ const getPersistentLines = () => {
               }}
             >
 <div
-  className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white border border-[#A44A3F] opacity-0 group-hover:opacity-100 transition-opacity cursor-crosshair z-20"
+  className="absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-white border border-[#A44A3F] opacity-0 group-hover:opacity-100 transition-opacity cursor-crosshair z-20"
   onPointerDown={(e) => startDrag(e, tarea.id, 'end')}
   title="Bloquea a..."
 />
 <div
-  className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white border border-[#A44A3F] opacity-0 group-hover:opacity-100 transition-opacity cursor-crosshair z-20"
+  className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-white border border-[#A44A3F] opacity-0 group-hover:opacity-100 transition-opacity cursor-crosshair z-20"
   onPointerDown={(e) => startDrag(e, tarea.id, 'start')}
   title="Depende de..."
 />
@@ -422,17 +428,22 @@ const getPersistentLines = () => {
         <path d="M0,0 L0,6 L6,3 z" fill="#A44A3F" />
       </marker>
     </defs>
-    {getPersistentLines().map(line => (
-      <line
-        key={line.id}
-        x1={line.x1} y1={line.y1}
-        x2={line.x2} y2={line.y2}
-        stroke="#A44A3F"
-        strokeWidth="1.5"
-        opacity="0.4"
-        markerEnd="url(#dep-arrow)"
-      />
-    ))}
+{getPersistentLines().map(line => {
+  const midX = (line.x1 + line.x2) / 2
+  return (
+    <path
+      key={line.id}
+      d={`M ${line.x1} ${line.y1} H ${midX} V ${line.y2} H ${line.x2}`}
+      fill="none"
+      stroke="#A44A3F"
+      strokeWidth="1.5"
+      strokeDasharray="1 4"
+      strokeLinecap="round"
+      opacity="0.5"
+      markerEnd="url(#dep-arrow)"
+    />
+  )
+})}
     {liveLine && (
       <>
         <circle cx={liveLine.from.x} cy={liveLine.from.y} r="3" fill="#A44A3F" opacity="0.9" />
