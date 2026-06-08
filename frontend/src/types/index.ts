@@ -30,11 +30,23 @@ export interface Tarea {
   obraId: number
   tareaPadreId?: number
   subtareas: Tarea[]
+  bloqueadaPor?: TareaDependencia[]
+  bloquea?: TareaDependencia[]
   detallesMaterial: DetalleMaterial[]
   manoDeObra: ManoDeObra[]
   imagenes: ImagenTarea[]
   createdAt: string
   updatedAt: string
+}
+
+export interface TareaDependencia {
+  id: number
+
+  bloqueadoraId: number
+  dependienteId: number
+
+  bloqueadora?: Tarea
+  dependiente?: Tarea
 }
 
 export type EstadoTarea = 'PENDIENTE' | 'ATRASADA' | 'EN_PROCESO' | 'FINALIZADA'

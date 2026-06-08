@@ -80,8 +80,25 @@ model Tarea {
   detallesMaterial DetalleMaterial[]
   manoDeObra      ManoDeObra[]
   historialEstados HistorialEstado[]
+
+  bloquea TareaDependencia[] @relation("Bloqueadora")
+  bloqueadaPor TareaDependencia[] @relation("Dependiente")
+
 }
 
+model TareaDependencia {
+  id Int @id @default(autoincrement())
+
+  bloqueadoraId Int
+  bloqueadora Tarea @relation("Bloqueadora", fields: [bloqueadoraId], references: [id], onDelete: Cascade)
+
+  dependienteId Int
+  dependiente Tarea @relation("Dependiente", fields: [dependienteId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([bloqueadoraId, dependienteId])
+}
 
 
 model HistorialEstado {

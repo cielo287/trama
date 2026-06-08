@@ -111,5 +111,23 @@ export class TareasController {
     @CurrentUser() user: UserPayload
   ) {
     return this.tareasService.eliminarManoDeObra(+id, +manoDeObraId, user.userId);
-  } 
+  }
+  
+  @Post('/dependencias')
+  async agregarDependencia(
+    @Body() body: { bloqueadoraId: number; dependienteId: number },
+    @CurrentUser() user: UserPayload
+  ) {
+    const { bloqueadoraId, dependienteId } = body;
+    return this.tareasService.agregarDependecia(bloqueadoraId, dependienteId, user.userId);
+  }
+  
+  @Delete('dependencias/:id')
+  async eliminarDependencia(
+    @Param('id') dependenciaId: string,
+    @CurrentUser() user: UserPayload
+  ) {
+    return this.tareasService.eliminarDependencia(+dependenciaId, user.userId);
+}
+
 }

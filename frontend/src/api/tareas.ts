@@ -1,5 +1,5 @@
 import { apiFetch } from './client'
-import type { DetalleMaterial, ManoDeObra, Tarea } from '@/types'
+import type { DetalleMaterial, ManoDeObra, Tarea, TareaDependencia } from '@/types'
 import type { CreateDetalleMaterialInput, CreateManoDeObraInput, CreateTareaInput } from '@/types/inputs'
 import type { UpdateTareaInput } from '@/types/inputs'
 
@@ -81,5 +81,25 @@ export const eliminarDetalleMaterial = (tareaId: number, detalleId: number) =>
 
 export const eliminarManoDeObra = (tareaId: number, manoDeObraId: number) =>
     apiFetch(`/api/tareas/${tareaId}/mano-de-obra/${manoDeObraId}`, {
+        method: 'DELETE'
+    })
+
+export const agregarDependencia = (
+  bloqueadoraId: number,
+  dependienteId: number
+): Promise<TareaDependencia> =>
+  apiFetch('/api/tareas/dependencias', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      bloqueadoraId,
+      dependienteId
+    })
+  })
+
+export const eliminarDependencia = (tareaId: number, dependenciaId: number) =>
+    apiFetch(`/api/tareas/dependencia/${dependenciaId}`, {
         method: 'DELETE'
     })

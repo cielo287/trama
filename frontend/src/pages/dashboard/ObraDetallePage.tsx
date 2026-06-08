@@ -32,7 +32,8 @@ export default function ObraPage() {
     editarMaterial,
     editarMdo,
     borrarDetalleMaterial,
-    eliminarMdo
+    eliminarMdo,
+    crearDependencia,
   } = useTareas(Number(id))
 
   const [panelAbierto, setPanelAbierto] = useState(false)
@@ -254,6 +255,7 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
             onTareaClick={abrirEditarTarea}
             onNuevaTarea={abrirNuevaTarea}
             onUpdateTareas={handleUpdateTareas}
+            onCrearDependencia={crearDependencia}
           />
         )}
         {viewMode === 'kanban' && (

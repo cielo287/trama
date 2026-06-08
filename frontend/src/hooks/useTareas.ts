@@ -10,7 +10,9 @@ import { getTareasByObra,
   editarDetalleMaterial,
   editarManoDeObra,
   eliminarManoDeObra,
-  eliminarDetalleMaterial
+  eliminarDetalleMaterial,
+  agregarDependencia,
+  eliminarDependencia
  } from '@/api/tareas'
 import type { Tarea, EstadoTarea } from '@/types'
 import type { CreateDetalleMaterialInput, CreateManoDeObraInput, CreateTareaInput, UpdateTareaInput } from '@/types/inputs'
@@ -262,5 +264,32 @@ async function borrarDetalleMaterial(tareaId: number, detalleId: number) {
     )
   )
 }
-  return { tareas, loading, actionLoading, error, creating,  updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial, agregarManoDeObra, editarMaterial, editarMdo, borrarDetalleMaterial, eliminarMdo }
+
+async function crearDependencia(
+  bloqueadoraId: number,
+  dependienteId: number
+) {
+  const dependencia = await agregarDependencia(
+    bloqueadoraId,
+    dependienteId
+  )
+
+  setTareas(prev =>
+    prev.map(t =>
+      t.id === dependienteId
+        ? {
+            ...t,
+            bloqueadaPor: [
+              ...(t.bloqueadaPor ?? []),
+              dependencia
+            ]
+          }
+        : t
+    )
+  )
+
+  return dependencia
+}
+
+  return { tareas, loading, actionLoading, error, creating,  updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial, agregarManoDeObra, editarMaterial, editarMdo, borrarDetalleMaterial, eliminarMdo, crearDependencia }
 }

@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { 
   format, 
   isToday, 
@@ -26,6 +26,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useGantt } from '../hooks/useGantt'
+import { useDependencyDrag, type DragState } from '../hooks/useDependencyDrag'
 
 const ESTADO_COLOR: Record<string, string> = {
   PENDIENTE: '#CDC5C5',
@@ -42,6 +43,7 @@ interface Props {
   onTareaClick: (tarea: Tarea) => void
   onNuevaTarea: () => void
   onFechaChange: (nuevaFecha: Date) => void
+  onCrearDependencia: (bloqueadoraId: number, dependienteId: number) => Promise<unknown>
 }
 
 export default function Gantt({ 
@@ -52,9 +54,38 @@ export default function Gantt({
   onUpdateTareas, 
   onTareaClick, 
   onNuevaTarea,
- }: Props) {
+  onCrearDependencia
+}: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
-  
+
+  const timelineContainerRef = useRef<HTMLDivElement>(null)
+
+const { drag, startDrag, moveDrag, registerTarget } = useDependencyDrag({
+  onConnect: onCrearDependencia,
+})
+
+useEffect(() => {
+  if (!drag) return
+  const handleMove = (e: PointerEvent) => moveDrag(e)
+  window.addEventListener('pointermove', handleMove)
+  return () => window.removeEventListener('pointermove', handleMove)
+}, [drag, moveDrag])
+
+const toRelative = (clientX: number, clientY: number) => {
+  const rect = timelineContainerRef.current?.getBoundingClientRect()
+  if (!rect) return { x: clientX, y: clientY }
+  return {
+    x: clientX - rect.left + (timelineContainerRef.current?.scrollLeft ?? 0),
+    y: clientY - rect.top + (timelineContainerRef.current?.scrollTop ?? 0),
+  }
+}
+
+const liveLine = drag ? {
+  from: toRelative(drag.startX, drag.startY),
+  to: toRelative(drag.currentX, drag.currentY),
+} : null
+
+
   const {
     //fecha,
     dias,
@@ -88,6 +119,32 @@ export default function Gantt({
     if (!over || active.id === over.id) return
     reordenarTareas(active.id as string, over.id as string)
   }
+
+  const barRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
+const [, forceUpdate] = useState(0)
+
+const getPersistentLines = () => {
+  const containerRect = timelineContainerRef.current?.getBoundingClientRect()
+  if (!containerRect) return []
+  const lines: { x1: number; y1: number; x2: number; y2: number; id: number }[] = []
+  for (const tarea of tareasConFecha) {
+    if (!tarea.bloqueadaPor?.length) continue
+    const depEl = barRefsMap.current.get(tarea.id)
+    if (!depEl) continue
+    const depRect = depEl.getBoundingClientRect()
+    const depX = depRect.left - containerRect.left + (timelineContainerRef.current?.scrollLeft ?? 0)
+    const depY = depRect.top - containerRect.top + (timelineContainerRef.current?.scrollTop ?? 0) + depRect.height / 2
+    for (const dep of tarea.bloqueadaPor) {
+      const bloqEl = barRefsMap.current.get(dep.bloqueadoraId)
+      if (!bloqEl) continue
+      const bloqRect = bloqEl.getBoundingClientRect()
+      const bloqX = bloqRect.right - containerRect.left + (timelineContainerRef.current?.scrollLeft ?? 0)
+      const bloqY = bloqRect.top - containerRect.top + (timelineContainerRef.current?.scrollTop ?? 0) + bloqRect.height / 2
+      lines.push({ x1: bloqX, y1: bloqY, x2: depX, y2: depY, id: dep.id })
+    }
+  }
+  return lines
+}
 
   const SortableRow = ({ tarea, ...props }: { tarea: Tarea, [key: string]: any }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(tarea.id) })
@@ -161,6 +218,8 @@ export default function Gantt({
   >
     {tarea.titulo}
   </span>
+  
+
 </div>
           </div>
           
@@ -227,7 +286,22 @@ export default function Gantt({
               whileHover={{ scaleY: 1.2, opacity: 1, zIndex: 10 }}
               whileTap={{ cursor: 'grabbing' }}
               initial={{ opacity: 0.85 }}
+              onPointerEnter={() => { if (drag) registerTarget(tarea.id) }}
+              ref={(el) => {
+                if (el) barRefsMap.current.set(tarea.id, el as HTMLDivElement)
+                else barRefsMap.current.delete(tarea.id)
+              }}
             >
+<div
+  className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white border border-[#A44A3F] opacity-0 group-hover:opacity-100 transition-opacity cursor-crosshair z-20"
+  onPointerDown={(e) => startDrag(e, tarea.id, 'end')}
+  title="Bloquea a..."
+/>
+<div
+  className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white border border-[#A44A3F] opacity-0 group-hover:opacity-100 transition-opacity cursor-crosshair z-20"
+  onPointerDown={(e) => startDrag(e, tarea.id, 'start')}
+  title="Depende de..."
+/>
               {/* Manejador izquierdo (Resize) */}
               <motion.div 
                 drag="x"
@@ -272,7 +346,11 @@ export default function Gantt({
       </div>
 
       {/* Area de scroll principal */}
-      <div className="flex-1 overflow-auto relative">
+      <div
+        ref={timelineContainerRef}
+        className="flex-1 overflow-auto relative"
+        onScroll={() => forceUpdate(n => n + 1)}
+        >
         <div style={{ minWidth: (config.colTarea + config.colEncargado) + (totalDays * config.minColWidth) }}>
           
           {/* Header de la tabla */}
@@ -336,6 +414,42 @@ export default function Gantt({
             </DragOverlay>
           </DndContext>
         </div>
+        
+{(liveLine || tareasConFecha.some(t => t.bloqueadaPor?.length)) && (
+  <svg className="absolute inset-0 pointer-events-none z-50" style={{ width: '100%', height: '100%' }}>
+    <defs>
+      <marker id="dep-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L6,3 z" fill="#A44A3F" />
+      </marker>
+    </defs>
+    {getPersistentLines().map(line => (
+      <line
+        key={line.id}
+        x1={line.x1} y1={line.y1}
+        x2={line.x2} y2={line.y2}
+        stroke="#A44A3F"
+        strokeWidth="1.5"
+        opacity="0.4"
+        markerEnd="url(#dep-arrow)"
+      />
+    ))}
+    {liveLine && (
+      <>
+        <circle cx={liveLine.from.x} cy={liveLine.from.y} r="3" fill="#A44A3F" opacity="0.9" />
+        <line
+          x1={liveLine.from.x} y1={liveLine.from.y}
+          x2={liveLine.to.x} y2={liveLine.to.y}
+          stroke="#A44A3F"
+          strokeWidth="2"
+          strokeDasharray="5 3"
+          opacity="0.75"
+          markerEnd="url(#dep-arrow)"
+        />
+      </>
+    )}
+  </svg>
+)}
+
       </div>
 
       {/* Footer */}

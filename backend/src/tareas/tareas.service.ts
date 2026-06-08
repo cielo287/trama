@@ -69,7 +69,13 @@ export class TareasService {
         obra: true,
         tareaPadre: true,
         subtareas: true,
+        bloqueadaPor: {
+          include: {
+            bloqueadora: true, 
+          }
+        } 
       },
+
     });
   }
 
@@ -93,6 +99,16 @@ export class TareasService {
             encargado: true,
           },
         },
+        bloquea: {
+          include: {
+            dependiente: true,
+          }
+        },
+        bloqueadaPor: {
+          include: {
+            bloqueadora: true,
+          }
+        } 
       },
     });
 
@@ -232,7 +248,29 @@ async cambiarEstado(tareaId: number, nuevoEstado: EstadoTarea, usuarioId: number
         );
       }
     }
-
+    const dependeciasPendientes =
+      await this.prisma.tareaDependencia.findMany({
+        where: {
+          dependienteId: tareaId,
+          bloqueadora: {
+            estado: { not: EstadoTarea.FINALIZADA 
+            }
+          }
+        }
+      });
+    if (dependeciasPendientes.length > 0) {
+      if (nuevoEstado === EstadoTarea.EN_PROCESO) {
+        throw new BadRequestException(
+          'No podés poner esta tarea en proceso porque depende de otras tareas que no están finalizadas.',
+        );
+      }
+    
+      if (nuevoEstado === EstadoTarea.FINALIZADA) {
+        throw new BadRequestException(
+          'No podés finalizar esta tarea porque depende de otras tareas que no están finalizadas.',
+        );
+      }
+    }
     // 4. Usamos una transacción de Prisma para asegurar que se actualice la tarea
     // y se cree el historial en un solo bloque (si uno falla, no se hace nada)
     return this.prisma.$transaction(async (tx) => {
@@ -462,6 +500,69 @@ async cambiarEstado(tareaId: number, nuevoEstado: EstadoTarea, usuarioId: number
       where: { id: manoDeObraId }
     });
   }
+
+  async agregarDependecia(
+    bloqueadoraId: number,
+    dependienteId: number,
+    usuarioId: number
+  ) {
+    if (bloqueadoraId === dependienteId) {
+      throw new BadRequestException('Una tarea no puede depender de sí misma');
+    }
+
+    const tareas = await this.prisma.tarea.findMany({
+      where: {
+        id: { in: [bloqueadoraId, dependienteId] },
+        obra: { usuarioId }
+      }
+    });
+
+    if (tareas.length !== 2) {
+      throw new NotFoundException('Alguna de las tareas no existe o no tenés acceso');
+    }
+
+  const existente = await this.prisma.tareaDependencia.findFirst({
+    where: {
+      bloqueadoraId,
+      dependienteId
+    }
+  });
+
+  if (existente) {
+    throw new BadRequestException(
+      'La dependencia ya existe'
+    );}
+  
+  const inversa = await this.prisma.tareaDependencia.findFirst({
+  where: {
+    bloqueadoraId: dependienteId,
+    dependienteId: bloqueadoraId
+  }
+});
+
+if (inversa) {
+  throw new BadRequestException(
+    'Generaría una dependencia circular'
+  );
+}
+
+  return this.prisma.tareaDependencia.create({
+    data: {
+      bloqueadoraId,
+      dependienteId
+     }
+    });
+  }
+
+
+  async eliminarDependencia(
+  dependenciaId: number,
+  usuarioId: number
+) {
+  await this.prisma.tareaDependencia.delete({
+    where: { id: dependenciaId, }
+  });
+}
 
   private normalizarTelefono(telefono: string): string {
     // Eliminar espacios, guiones y paréntesis

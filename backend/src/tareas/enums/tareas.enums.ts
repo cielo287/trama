@@ -7,7 +7,6 @@ export enum EstadoTarea {
 
 export enum PrioridadTarea {
   ALTA = 'ALTA',
-  ATRASADA = 'ATRASADA',
   MEDIA = 'MEDIA',
   BAJA = 'BAJA'
 }
