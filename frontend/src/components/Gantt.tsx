@@ -127,6 +127,11 @@ const liveLine = drag ? {
   const barRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
 const [, forceUpdate] = useState(0)
 
+useEffect(() => {
+  const id = requestAnimationFrame(() => forceUpdate(n => n + 1))
+  return () => cancelAnimationFrame(id)
+}, [])
+
 
 
 const getPersistentLines = () => {
