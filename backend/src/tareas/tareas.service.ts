@@ -564,6 +564,39 @@ if (inversa) {
   });
 }
 
+async obtenerHistorialEstados(tareaId: number, usuarioId: number) {
+  const historial = await this.prisma.historialEstado.findMany({
+    where: {
+      tareaId,
+      tarea: {
+        obra: {
+          usuarioId,
+        },
+      },
+    },
+    orderBy: {
+      fechaInicio: 'desc',
+    },
+  });
+
+  if (historial.length === 0) {
+    const existe = await this.prisma.tarea.findFirst({
+      where: {
+        id: tareaId,
+        obra: { usuarioId },
+      },
+    });
+
+    if (!existe) {
+      throw new NotFoundException(
+        `Tarea con id ${tareaId} no encontrada o no tenés acceso`,
+      );
+    }
+  }
+
+  return historial;
+}
+
   private normalizarTelefono(telefono: string): string {
     // Eliminar espacios, guiones y paréntesis
     return telefono.replace(/[\s\-()]/g, '');

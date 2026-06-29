@@ -130,4 +130,15 @@ export class TareasController {
     return this.tareasService.eliminarDependencia(+dependenciaId, user.userId);
 }
 
+@Get(':id/historial')
+obtenerHistorial(
+  @Param('id') id: String,
+  @CurrentUser() user: UserPayload
+) {
+  return this.tareasService.obtenerHistorialEstados(
+    +id,
+    user.userId,
+  );
+}
+
 }
