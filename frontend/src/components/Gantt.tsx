@@ -127,11 +127,14 @@ const liveLine = drag ? {
   const barRefsMap = useRef<Map<number, HTMLDivElement>>(new Map())
 const [, forceUpdate] = useState(0)
 
+const dependenciasKey = tareasConFecha
+  .flatMap(t => t.bloqueadaPor?.map(d => d.id) ?? [])
+  .join(',')
+
 useEffect(() => {
   const id = requestAnimationFrame(() => forceUpdate(n => n + 1))
   return () => cancelAnimationFrame(id)
-}, [])
-
+}, [tareasConFecha.length, dependenciasKey])
 
 
 const getPersistentLines = () => {

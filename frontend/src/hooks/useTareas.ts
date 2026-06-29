@@ -265,30 +265,39 @@ async function borrarDetalleMaterial(tareaId: number, detalleId: number) {
   )
 }
 
-async function crearDependencia(
-  bloqueadoraId: number,
-  dependienteId: number
-) {
-  const dependencia = await agregarDependencia(
-    bloqueadoraId,
-    dependienteId
-  )
-
+async function crearDependencia(bloqueadoraId: number, dependienteId: number) {
+  // Optimistic: ID temporal
+  const tempId = -Date.now()
   setTareas(prev =>
     prev.map(t =>
       t.id === dependienteId
-        ? {
-            ...t,
-            bloqueadaPor: [
-              ...(t.bloqueadaPor ?? []),
-              dependencia
-            ]
-          }
+        ? { ...t, bloqueadaPor: [...(t.bloqueadaPor ?? []), { id: tempId, bloqueadoraId, dependienteId }] }
         : t
     )
   )
-
-  return dependencia
+  
+  try {
+    const dependencia = await agregarDependencia(bloqueadoraId, dependienteId)
+    // Reemplazá el temp con el real
+    setTareas(prev =>
+      prev.map(t =>
+        t.id === dependienteId
+          ? { ...t, bloqueadaPor: t.bloqueadaPor!.map(d => d.id === tempId ? dependencia : d) }
+          : t
+      )
+    )
+    return dependencia
+  } catch (e) {
+    // Rollback
+    setTareas(prev =>
+      prev.map(t =>
+        t.id === dependienteId
+          ? { ...t, bloqueadaPor: t.bloqueadaPor!.filter(d => d.id !== tempId) }
+          : t
+      )
+    )
+    throw e
+  }
 }
 
   return { tareas, loading, actionLoading, error, creating,  updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial, agregarManoDeObra, editarMaterial, editarMdo, borrarDetalleMaterial, eliminarMdo, crearDependencia }
