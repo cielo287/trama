@@ -74,6 +74,10 @@ const finMes = endOfMonth(fecha)
 const tareasFiltradas = useMemo(() => {
   return tareas.filter(t => {
 
+    if (t.estado === 'PENDIENTE') {
+      return true
+    }
+
     if (!t.fechaInicio) {
       return true
     }
@@ -94,14 +98,35 @@ const tareasFiltradas = useMemo(() => {
   const tareasPorEstado = useMemo(() => {
 
     return COLUMNAS.reduce((acc, col) => {
+      const tareasColumna = tareasFiltradas.filter(t => t.estado === col)
 
-      acc[col] = tareasFiltradas
-        .filter(t => t.estado === col)
-        .sort(
-          (a, b) =>
-            (a.ordenEjecucion ?? 0) -
-            (b.ordenEjecucion ?? 0)
-        )
+       if (col === 'PENDIENTE') {
+        tareasColumna.sort((a, b) => {
+        // Las tareas con fecha van antes que las que no tienen
+        if (!a.fechaInicio && !b.fechaInicio) {
+          return (a.ordenEjecucion ?? 0) - (b.ordenEjecucion ?? 0)
+        }
+
+        if (!a.fechaInicio) return 1
+        if (!b.fechaInicio) return -1
+
+        const diff =
+          parseFecha(a.fechaInicio).getTime() -
+          parseFecha(b.fechaInicio).getTime()
+
+        if (diff !== 0) return diff
+
+        return (a.ordenEjecucion ?? 0) - (b.ordenEjecucion ?? 0)
+      })
+    } else {
+      tareasColumna.sort(
+        (a, b) =>
+          (a.ordenEjecucion ?? 0) -
+          (b.ordenEjecucion ?? 0)
+      )
+    }
+
+      acc[col] = tareasColumna
 
       return acc
 

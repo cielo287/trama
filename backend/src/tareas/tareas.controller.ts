@@ -24,6 +24,15 @@ export class TareasController {
     return this.tareasService.findAll(user.userId);
   }
 
+    @Patch('reorder')
+  async reorder(@Body() body: { orden: { id: number; orden: number }[] }, @CurrentUser() user: UserPayload) {
+    try {
+      await this.tareasService.reorder(body.orden, user.userId);
+    } catch (error) {
+      throw new Error('Error al reordenar las tareas');
+    }
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @CurrentUser() user: UserPayload) {
     return this.tareasService.findOne(+id, user.userId);
@@ -39,14 +48,7 @@ export class TareasController {
     return this.tareasService.remove(+id, user.userId);
   }
 
-  @Patch('reorder')
-  async reorder(@Body() body: { orden: { id: number; orden: number }[] }, @CurrentUser() user: UserPayload) {
-    try {
-      await this.tareasService.reorder(body.orden, user.userId);
-    } catch (error) {
-      throw new Error('Error al reordenar las tareas');
-    }
-  }
+
 
   @Patch(':id/cambiar-estado')
   async cambiarEstado(

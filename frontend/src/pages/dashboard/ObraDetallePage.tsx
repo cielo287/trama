@@ -8,7 +8,7 @@ import Gantt from '@/components/Gantt'
 import TareaPanel from '@/components/TareaPanel'
 import Kanban from '@/components/Kanban'
 import SelectorMes from '@/components/SelectorMes'
-
+import AlertDialog from '@/components/ui/AlertDialog'
 
 type Seccion = 'tareas' | 'cronograma' | 'presupuesto' | 'metricas' | 'archivos'
 
@@ -34,6 +34,8 @@ export default function ObraPage() {
     borrarDetalleMaterial,
     eliminarMdo,
     crearDependencia,
+    error,
+    limpiarError,
   } = useTareas(Number(id))
 
   const [panelAbierto, setPanelAbierto] = useState(false)
@@ -300,6 +302,12 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         onBorrarDetalleMaterial={borrarDetalleMaterial}
         onEliminarManoDeObra={eliminarMdo}
         
+      />
+      <AlertDialog
+        open={!!error}
+        title="No se pudo completar la acción"
+        message={error ?? ''}
+        onClose={limpiarError}
       />
     </div>
   )

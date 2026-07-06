@@ -92,8 +92,15 @@ async function crear(
     try {
       const actualizada = await cambiarEstadoTarea(id, nuevoEstado, notas)
       setTareas(prev => prev.map(t => t.id === id ? actualizada : t))
-    } catch {
-      setError('Error al cambiar el estado de la tarea')
+      return actualizada
+    } catch (e) {
+      if (e instanceof Error) {
+        console.error(e.message)
+        setError(e.message)
+      } else {
+        setError('Error al cambiar el estado de la tarea')
+      }
+      throw e
     } finally {
       setActionLoading(false)
     }
@@ -300,5 +307,9 @@ async function crearDependencia(bloqueadoraId: number, dependienteId: number) {
   }
 }
 
-  return { tareas, loading, actionLoading, error, creating,  updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial, agregarManoDeObra, editarMaterial, editarMdo, borrarDetalleMaterial, eliminarMdo, crearDependencia }
+function limpiarError() {
+  setError(null)
+}
+
+  return { tareas, loading, actionLoading, error, limpiarError, creating, updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial, agregarManoDeObra, editarMaterial, editarMdo, borrarDetalleMaterial, eliminarMdo, crearDependencia }
 }

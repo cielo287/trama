@@ -64,13 +64,15 @@ useEffect(() => {
   }
 }, [tarea?.id, open, abrirEnEdicion])
 
-  const handleSubmit = useCallback(async () => {
-    if (!titulo.trim() || !isEditing) return
+const handleSubmit = useCallback(async () => {
+  if (!titulo.trim() || !isEditing) return
 
-    if (tarea) {
+  if (tarea) {
+    try {
       if (estado !== tarea.estado && onCambiarEstado) {
         await onCambiarEstado(tarea.id, estado)
       }
+
       await onUpdate(tarea.id, {
         titulo: titulo.trim(),
         descripcion: descripcion.trim() || undefined,
@@ -78,30 +80,39 @@ useEffect(() => {
         fechaFin: fechaFin || undefined,
         prioridad,
       })
-      setIsEditing(false)
-    } else {
-      const nuevaTarea = await onCreate({
-        titulo: titulo.trim(),
-        descripcion: descripcion.trim() || undefined,
-        fechaInicio: fechaInicio || undefined,
-        fechaFin: fechaFin || undefined,
-        prioridad,
-        obraId,
-      })
-      onCreated?.(nuevaTarea)
-    }
-  }, [titulo, 
-    descripcion, 
-    fechaInicio, 
-    fechaFin, 
-    estado, 
-    prioridad, 
-    tarea, 
-    isEditing, 
-    onCambiarEstado, 
-    onUpdate, 
-    onCreate, onCreated, obraId])
 
+      setIsEditing(false)
+    } catch {
+      // No hacemos nada.
+      // useTareas ya mostró el AlertDialog y dejamos el panel en edición.
+    }
+  } else {
+    const nuevaTarea = await onCreate({
+      titulo: titulo.trim(),
+      descripcion: descripcion.trim() || undefined,
+      fechaInicio: fechaInicio || undefined,
+      fechaFin: fechaFin || undefined,
+      prioridad,
+      obraId,
+    })
+
+    onCreated?.(nuevaTarea)
+  }
+}, [
+  titulo,
+  descripcion,
+  fechaInicio,
+  fechaFin,
+  estado,
+  prioridad,
+  tarea,
+  isEditing,
+  onCambiarEstado,
+  onUpdate,
+  onCreate,
+  onCreated,
+  obraId,
+])
   // Atajos de teclado
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
