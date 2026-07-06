@@ -8,7 +8,7 @@ import Gantt from '@/components/Gantt'
 import TareaPanel from '@/components/TareaPanel'
 import Kanban from '@/components/Kanban'
 import SelectorMes from '@/components/SelectorMes'
-import AlertDialog from '@/components/ui/AlertDialog'
+import AlertDialog from '@/components/AlertDialog'
 
 type Seccion = 'tareas' | 'cronograma' | 'presupuesto' | 'metricas' | 'archivos'
 

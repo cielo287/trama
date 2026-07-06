@@ -44,7 +44,7 @@ interface UseKanbanProps {
   onEstadoChange: (
     id: number,
     nuevoEstado: EstadoTarea
-  ) => void
+  ) => Promise<void>
 }
 
 export function useKanban({
@@ -215,6 +215,8 @@ const tareasFiltradas = useMemo(() => {
      */
     if (draggedTarea.estado !== overColumn) {
 
+      const prevTareas = tareas
+
       const nuevasTareas = tareas.map(t =>
         t.id === draggedTarea.id
           ? {
@@ -224,18 +226,14 @@ const tareasFiltradas = useMemo(() => {
           : t
       )
 
-      /**
-       * Update inmediato UI
-       */
       onUpdateTareas(nuevasTareas)
 
-      /**
-       * Persist backend
-       */
-      onEstadoChange(
-        draggedTarea.id,
-        overColumn
-      )
+      try {
+        await onEstadoChange(draggedTarea.id, overColumn)
+      } catch (error) {
+        console.error(error)
+        onUpdateTareas(prevTareas)
+      }
 
       return
     }

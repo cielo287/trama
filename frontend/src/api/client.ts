@@ -9,8 +9,15 @@ export async function apiFetch<T>(
 
   if (!res.ok) {
     const text = await res.text()
-    throw new Error(text || 'Error en la petición')
-  }
+    let message = 'Error en la petición'
+    try {
+  const json = JSON.parse(text)
+  message = json.message || message
+    } catch {
+      message = text || message
+    }
+
+  throw new Error(message)}
 
   // No Content
   if (res.status === 204) {
