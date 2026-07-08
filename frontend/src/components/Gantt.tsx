@@ -30,8 +30,7 @@ import { useDependencyDrag, type DragState } from '../hooks/useDependencyDrag'
 
 const ESTADO_COLOR: Record<string, string> = {
   PENDIENTE: '#CDC5C5',
-  EN_PROCESO: '#16F7E8',
-  ATRASADA: '#F99783',
+  EN_CURSO: '#16F7E8',
   FINALIZADA: '#84CC16',
 }
 

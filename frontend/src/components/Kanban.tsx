@@ -30,26 +30,25 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 
-type Estado = 'PENDIENTE' | 'EN_PROCESO' | 'ATRASADA' | 'FINALIZADA';
+import { calcularAtraso } from '@/utils/tarea';
 
-const ESTADO_LABEL: Record<Estado, string> = {
+const ATRASO_COLOR = '#F99783';
+
+const ESTADO_LABEL: Record<EstadoTarea, string> = {
   PENDIENTE: 'Pendiente',
-  EN_PROCESO: 'En Proceso',
-  ATRASADA: 'Atrasada',
+  EN_CURSO: 'En Proceso',
   FINALIZADA: 'Finalizada',
 };
 
-const ESTADO_COLOR: Record<Estado, string> = {
+const ESTADO_COLOR: Record<EstadoTarea, string> = {
   PENDIENTE: '#CDC5C5',
-  EN_PROCESO: '#16F7E8',
-  ATRASADA: '#F99783',
+  EN_CURSO: '#16F7E8',
   FINALIZADA: '#84CC16',
 };
 
-const ESTADO_BG_LIGHT: Record<Estado, string> = {
+const ESTADO_BG_LIGHT: Record<EstadoTarea, string> = {
   PENDIENTE: 'bg-[#F2EFF0]',
-  EN_PROCESO: 'bg-[#E3FEFC]',
-  ATRASADA: 'bg-[#FFF2F0]',
+  EN_CURSO: 'bg-[#E3FEFC]',
   FINALIZADA: 'bg-[#F1FCE3]',
 };
 
@@ -299,7 +298,7 @@ function SortableCard({
   // Calulate subtasks if mock or state exists
   const totalSubtasks = 0; // we can map these later or support description parsed list
   const activeSubtasks = 0;
-
+  const { atrasada, dias } = calcularAtraso(tarea);
   return (
     <motion.div
       ref={setNodeRef}
@@ -309,8 +308,10 @@ function SortableCard({
       layoutId={String(tarea.id)}
       onClick={onClick}
       className={`shrink-0 bg-white p-4 rounded-sm border ${
-        isDragging 
-          ? 'border-[var(--state-color)] shadow-[4px_4px_0px_rgba(164,74,63,0.15)] bg-red-50/5' 
+        isDragging
+          ? 'border-[var(--state-color)] shadow-[4px_4px_0px_rgba(164,74,63,0.15)] bg-red-50/5'
+          : atrasada
+          ? 'border-[#F99783] shadow-[0_0_0_3px_rgba(249,151,131,0.25)]'
           : 'border-black/[0.08] shadow-[2px_2px_0px_rgba(0,0,0,0.02)] hover:shadow-[4px_4px_0px_rgba(0,0,0,0.04)] hover:border-[var(--state-color)]'
       } cursor-grab active:cursor-grabbing group transition-all duration-200 relative overflow-hidden`}
     >
@@ -329,7 +330,12 @@ function SortableCard({
             {prio}
           </span>
         </div>
-
+        {atrasada && (
+        <div className="flex items-center gap-1.5 mb-3 text-[9px] font-bold uppercase tracking-wide" style={{ color: ATRASO_COLOR }}>
+          <AlertTriangle size={11} strokeWidth={2.5} />
+          <span>{dias === 0 ? 'Vence hoy' : `Lleva ${dias} día${dias === 1 ? '' : 's'} de atraso`}</span>
+          </div>
+      )}
         <div className="text-[9px] font-bold text-gray-300 group-hover:text-[var(--state-color)] transition-colors">
           ID-{tarea.id.toString().padStart(3, '0')}
         </div>

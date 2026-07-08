@@ -259,7 +259,7 @@ async cambiarEstado(tareaId: number, nuevoEstado: EstadoTarea, usuarioId: number
         }
       });
     if (dependeciasPendientes.length > 0) {
-      if (nuevoEstado === EstadoTarea.EN_PROCESO) {
+      if (nuevoEstado === EstadoTarea.EN_CURSO) {
         throw new BadRequestException(
           'No podés poner esta tarea en proceso porque depende de otras tareas que no están finalizadas.',
         );

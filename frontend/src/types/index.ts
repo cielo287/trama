@@ -49,7 +49,7 @@ export interface TareaDependencia {
   dependiente?: Tarea
 }
 
-export type EstadoTarea = 'PENDIENTE' | 'ATRASADA' | 'EN_PROCESO' | 'FINALIZADA'
+export type EstadoTarea = 'PENDIENTE' |'EN_CURSO' | 'FINALIZADA'
 
 export interface Material {
   id: number

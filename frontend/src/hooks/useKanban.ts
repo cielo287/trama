@@ -30,8 +30,7 @@ import {
 
 const COLUMNAS: EstadoTarea[] = [
   'PENDIENTE',
-  'EN_PROCESO',
-  'ATRASADA',
+  'EN_CURSO',
   'FINALIZADA'
 ]
 

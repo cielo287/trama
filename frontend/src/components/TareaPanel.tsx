@@ -75,8 +75,7 @@ const PRIORIDAD_COLOR: Record<PrioridadTarea, string> = {
 
 const ESTADO_COLOR: Record<EstadoTarea, string> = {
   PENDIENTE: '#CDC5C5',
-  EN_PROCESO: '#16F7E8',
-  ATRASADA: '#F99783',
+  EN_CURSO: '#16F7E8',
   FINALIZADA: '#84CC16',
 }
 
@@ -238,8 +237,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
     className="w-full bg-transparent border-b border-black/[0.1] py-2 text-[11px] text-[#333] outline-none focus:border-[#A44A3F] transition-all uppercase font-bold cursor-pointer"
   >
     <option value="PENDIENTE">PENDIENTE</option>
-    <option value="ATRASADA">ATRASADA</option>
-    <option value="EN_PROCESO">EN PROCESO</option>
+    <option value="EN_CURSO">EN CURSO</option>
     <option value="FINALIZADA">FINALIZADA</option>
   </select>
 ) : (

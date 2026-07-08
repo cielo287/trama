@@ -4,7 +4,7 @@ import { EstadoTarea } from '../enums/tareas.enums';
 
 export class CambioEstadoTareaDto {
   @IsEnum(EstadoTarea, {
-        message: 'El estado debe ser: PENDIENTE, EN_PROCESO, ATRASADA o FINALIZADA',
+        message: 'El estado debe ser: PENDIENTE, EN_CURSO o FINALIZADA',
     })
     
     nuevoEstado!: EstadoTarea;
