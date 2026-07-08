@@ -36,7 +36,7 @@ const ATRASO_COLOR = '#F99783';
 
 const ESTADO_LABEL: Record<EstadoTarea, string> = {
   PENDIENTE: 'Pendiente',
-  EN_CURSO: 'En Proceso',
+  EN_CURSO: 'En Curso',
   FINALIZADA: 'Finalizada',
 };
 

@@ -23,7 +23,7 @@ export function useGantt({ tareas, onUpdateTareas, fecha, onFechaChange }: UseGa
   const config = {
     minColWidth: 40,
     rowHeight: 48,
-    colTarea: 220,
+    colTarea: 280,
     colEncargado: 160
   }
 

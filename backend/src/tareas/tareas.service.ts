@@ -597,6 +597,38 @@ async obtenerHistorialEstados(tareaId: number, usuarioId: number) {
   return historial;
 }
 
+async obtenerAlertasFin(usuarioId: number) {
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
+
+  const where: any = {
+    obra: { usuarioId },
+    estado: EstadoTarea.EN_CURSO,
+    fechaFin: { lt: hoy },
+    OR: [
+      { ultimaAlertaFin: null },
+      { ultimaAlertaFin: { lt: hoy } },
+    ],
+  }
+
+  return this.prisma.tarea.findMany({ where })
+}
+
+async confirmarAlertaFin(tareaId: number, usuarioId: number, termino: boolean) {
+  await this.findOne(tareaId, usuarioId)
+
+  if (termino) {
+    return this.cambiarEstado(tareaId, EstadoTarea.FINALIZADA, usuarioId)
+  }
+
+  return this.prisma.tarea.update({
+    where: { id: tareaId },
+    data: { ultimaAlertaFin: new Date() },
+  })
+}
+
+
+
   private normalizarTelefono(telefono: string): string {
     // Eliminar espacios, guiones y paréntesis
     return telefono.replace(/[\s\-()]/g, '');

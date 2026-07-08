@@ -57,6 +57,7 @@ model Tarea {
   // --- Fechas de Planificación ---
   fechaInicio     DateTime?     // Cuándo se PLANIFICA arrancar
   fechaFin        DateTime?     // Cuándo se PLANIFICA terminar
+  ultimaAlertaFin DateTime? 
   
   ordenEjecucion  Int?
   prioridad       String?

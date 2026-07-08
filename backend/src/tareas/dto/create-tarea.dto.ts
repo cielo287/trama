@@ -31,4 +31,7 @@ export class CreateTareaDto {
   @IsOptional()
   @IsInt()
   tareaPadreId?: number;
+
+  @IsOptional()
+  ultimaAlertaFin?: Date;
 }

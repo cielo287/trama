@@ -5,7 +5,7 @@ import {
   isToday, 
 } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { type Tarea } from '../types'
+import { EstadoTarea, type Tarea } from '../types'
 import { motion } from 'motion/react'
 import {
   DndContext,
@@ -27,11 +27,24 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { useGantt } from '../hooks/useGantt'
 import { useDependencyDrag, type DragState } from '../hooks/useDependencyDrag'
+import { AlertTriangle } from 'lucide-react'
+import { calcularAtraso, calcularProximidad, calcularProximidadFin } from '../utils/tarea'
 
-const ESTADO_COLOR: Record<string, string> = {
+const ESTADO_COLOR: Record<EstadoTarea, string> = {
   PENDIENTE: '#CDC5C5',
   EN_CURSO: '#16F7E8',
   FINALIZADA: '#84CC16',
+};
+
+const PROXIMIDAD_COLOR: Record<number, string> = {
+  7: '#84CC16',
+  6: '#84CC16',
+  5: '#84CC16',
+  4: '#EAB308', // amarillo
+  3: '#FACC15', // naranja claro
+  2: '#F97316', // naranja medio
+  1: '#EF4444', // naranja oscuro
+  0: "#DC2626", // naranja muy oscuro
 }
 
 interface Props {
@@ -162,9 +175,9 @@ const getPersistentLines = () => {
   const SortableRow = ({ tarea, ...props }: { tarea: Tarea, [key: string]: any }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(tarea.id) })
     const bar = getBarProps(tarea)
-
+    const { atrasada, dias: diasAtraso } = calcularAtraso(tarea)
+    const { proxima, dias: diasProx } = calcularProximidad(tarea)
     const isSelected = selectedTareaId === tarea.id
-    
     const style = {
       transform: CSS.Transform.toString(transform),
       transition,
@@ -231,6 +244,28 @@ const getPersistentLines = () => {
   >
     {tarea.titulo}
   </span>
+{proxima && (
+  <span
+    className="flex items-center gap-1 font-bold shrink-0"
+    style={{ color: PROXIMIDAD_COLOR[diasProx] }}
+    title={diasProx === 0 ? 'Empieza hoy' : `Empieza en ${diasProx} día${diasProx === 1 ? '' : 's'}`}
+  >
+    <AlertTriangle size={15} strokeWidth={2.0} />
+    {diasProx === 0 ? (
+      <span className="text-[10px]">EMPIEZA HOY</span>
+    ) : (
+      <span className="text-[12px]">{diasProx}</span>
+    )}
+  </span>
+)}
+
+{atrasada && (
+  <span
+    className="flex items-center gap-1 font-bold shrink-0 text-[#F99783]"
+    title={diasAtraso === 0 ? 'Vence hoy' : `Lleva ${diasAtraso} día${diasAtraso === 1 ? '' : 's'} de atraso`}
+  >
+  </span>
+)}
   
 
 </div>
@@ -289,11 +324,14 @@ const getPersistentLines = () => {
                 background: ESTADO_COLOR[tarea.estado ?? 'PENDIENTE'],
                 borderRadius: '4px',
                 cursor: 'grab',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                //boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                overflow: 'visible'
+                overflow: 'visible',
+                boxShadow: atrasada
+                  ? '0 0 0 2px #F99783, 0 1px 4px rgba(249,151,131,0.4)'
+                  : '0 1px 3px rgba(0,0,0,0.1)',
               }}
               animate= {{scaleY: isSelected ? 1.2 : 1 }}
               whileHover={{ scaleY: 1.2, opacity: 1, zIndex: 10 }}
@@ -315,6 +353,14 @@ const getPersistentLines = () => {
   onPointerDown={(e) => startDrag(e, tarea.id, 'start')}
   title="Depende de..."
 />
+{atrasada && (
+  <div
+    className="absolute -top-4 left-0 flex items-center gap-0.5 text-[#F99783]"
+    title={diasAtraso === 0 ? 'Vence hoy' : `Lleva ${diasAtraso} día${diasAtraso === 1 ? '' : 's'} de atraso`}
+  >
+    
+  </div>
+)}
               {/* Manejador izquierdo (Resize) */}
               <motion.div 
                 drag="x"

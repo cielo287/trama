@@ -45,30 +45,58 @@ export interface InfoAtraso {
 export function calcularAtraso(tarea: {
   estado: EstadoTarea
   fechaInicio?: string | null
-  fechaFin?: string | null
 }): InfoAtraso {
-  if (tarea.estado === 'FINALIZADA') {
+  if (tarea.estado !== 'PENDIENTE') {
+    return { atrasada: false, dias: 0 }
+  }
+
+  if (!tarea.fechaInicio) {
     return { atrasada: false, dias: 0 }
   }
 
   const hoy = parseFechaCalendario(new Date().toISOString())
+  const inicio = parseFechaCalendario(tarea.fechaInicio)
   const MS_DIA = 1000 * 60 * 60 * 24
 
-  let limite: Date | null = null
-
-  if (tarea.fechaFin) {
-    limite = parseFechaCalendario(tarea.fechaFin)
-  } else if (tarea.estado !== 'EN_CURSO' && tarea.fechaInicio) {
-    limite = parseFechaCalendario(tarea.fechaInicio)
-  }
-
-  if (!limite) {
-    return { atrasada: false, dias: 0 }
-  }
-
-  const dias = Math.floor((hoy.getTime() - limite.getTime()) / MS_DIA)
-
+  const dias = Math.floor((hoy.getTime() - inicio.getTime()) / MS_DIA)
   return dias >= 0
     ? { atrasada: true, dias }
     : { atrasada: false, dias: 0 }
+}
+
+export interface InfoProximidad {
+  proxima: boolean
+  dias: number 
+}
+
+export function calcularProximidad(tarea: {
+  estado: EstadoTarea
+  fechaInicio?: string | null
+}): InfoProximidad {
+  if (tarea.estado !== 'PENDIENTE') return { proxima: false, dias: 0 }
+  if (!tarea.fechaInicio) return { proxima: false, dias: 0 }
+
+  const hoy = parseFechaCalendario(new Date().toISOString())
+  const inicio = parseFechaCalendario(tarea.fechaInicio)
+  const MS_DIA = 1000 * 60 * 60 * 24
+  const dias = Math.round((inicio.getTime() - hoy.getTime()) / MS_DIA)
+
+  if (dias >= 0 && dias <= 7) return { proxima: true, dias }
+  return { proxima: false, dias: 0 }
+}
+
+export function calcularProximidadFin(tarea: {
+  estado: EstadoTarea
+  fechaFin?: string | null
+}): InfoProximidad {
+  if (tarea.estado !== 'EN_CURSO') return { proxima: false, dias: 0 }
+  if (!tarea.fechaFin) return { proxima: false, dias: 0 }
+
+  const hoy = parseFechaCalendario(new Date().toISOString())
+  const fin = parseFechaCalendario(tarea.fechaFin)
+  const MS_DIA = 1000 * 60 * 60 * 24
+  const dias = Math.round((fin.getTime() - hoy.getTime()) / MS_DIA)
+
+  if (dias >= 0 && dias <= 7) return { proxima: true, dias }
+  return { proxima: false, dias: 0 }
 }
