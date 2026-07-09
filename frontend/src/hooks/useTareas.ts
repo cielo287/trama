@@ -12,7 +12,9 @@ import { getTareasByObra,
   eliminarManoDeObra,
   eliminarDetalleMaterial,
   agregarDependencia,
-  eliminarDependencia
+  eliminarDependencia,
+  getAlertasFin,
+  confirmarAlertaFin
  } from '@/api/tareas'
 import type { Tarea, EstadoTarea } from '@/types'
 import type { CreateDetalleMaterialInput, CreateManoDeObraInput, CreateTareaInput, UpdateTareaInput } from '@/types/inputs'
@@ -311,5 +313,25 @@ function limpiarError() {
   setError(null)
 }
 
-  return { tareas, loading, actionLoading, error, limpiarError, creating, updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial, agregarManoDeObra, editarMaterial, editarMdo, borrarDetalleMaterial, eliminarMdo, crearDependencia }
+async function obtenerAlertasFin() {
+  return getAlertasFin()
+}
+
+async function responderAlertaFin(tareaId: number, termino: boolean) {
+  if (actionLoading) return
+  setActionLoading(true)
+  setError(null)
+  try {
+    const actualizada = await confirmarAlertaFin(tareaId, termino)
+    setTareas(prev => prev.map(t => t.id === tareaId ? actualizada : t))
+    return actualizada
+  } catch (e) {
+    setError('Error al confirmar la tarea')
+    throw e
+  } finally {
+    setActionLoading(false)
+  }
+}
+
+  return { tareas, loading, actionLoading, error, limpiarError, creating, updating, crear, editar, eliminar, reordenar, cambiarEstado, agregarMaterial, agregarManoDeObra, editarMaterial, editarMdo, borrarDetalleMaterial, eliminarMdo, crearDependencia, obtenerAlertasFin, responderAlertaFin }
 }

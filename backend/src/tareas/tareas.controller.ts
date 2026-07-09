@@ -143,4 +143,18 @@ obtenerHistorial(
   );
 }
 
+@Get('alertas/fin')
+obtenerAlertasFin(@CurrentUser() user: UserPayload) {
+  return this.tareasService.obtenerAlertasFin(user.userId)
+}
+
+@Post(':id/alertas/fin')
+confirmarAlertaFin(
+  @Param('id') id: String,
+  @CurrentUser() user: UserPayload,
+  @Body('termino') termino: boolean,
+) {
+  return this.tareasService.confirmarAlertaFin(+id, user.userId, termino)
+}
+
 }

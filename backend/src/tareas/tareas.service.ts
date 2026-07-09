@@ -301,6 +301,15 @@ async cambiarEstado(tareaId: number, nuevoEstado: EstadoTarea, usuarioId: number
       return tx.tarea.update({
         where: { id: tareaId },
         data: { estado: nuevoEstado },
+        include: {
+          obra: true,
+          tareaPadre: true,
+          subtareas: true,
+          detallesMaterial: { include: { material: true } },
+          manoDeObra: { include: { encargado: true } },
+          bloquea: { include: { dependiente: true } },
+          bloqueadaPor: { include: { bloqueadora: true } },
+        },
       });
     });
   }
@@ -601,17 +610,17 @@ async obtenerAlertasFin(usuarioId: number) {
   const hoy = new Date()
   hoy.setHours(0, 0, 0, 0)
 
-  const where: any = {
-    obra: { usuarioId },
-    estado: EstadoTarea.EN_CURSO,
-    fechaFin: { lt: hoy },
-    OR: [
-      { ultimaAlertaFin: null },
-      { ultimaAlertaFin: { lt: hoy } },
-    ],
-  }
-
-  return this.prisma.tarea.findMany({ where })
+  return this.prisma.tarea.findMany({
+    where: {
+      obra: { usuarioId },
+      estado: EstadoTarea.EN_CURSO,
+      fechaFin: { lt: hoy },
+      OR: [
+        { ultimaAlertaFin: null },
+        { ultimaAlertaFin: { lt: hoy } },
+      ],
+    },
+  })
 }
 
 async confirmarAlertaFin(tareaId: number, usuarioId: number, termino: boolean) {
@@ -624,6 +633,15 @@ async confirmarAlertaFin(tareaId: number, usuarioId: number, termino: boolean) {
   return this.prisma.tarea.update({
     where: { id: tareaId },
     data: { ultimaAlertaFin: new Date() },
+    include: {
+      obra: true,
+      tareaPadre: true,
+      subtareas: true,
+      detallesMaterial: { include: { material: true } },
+      manoDeObra: { include: { encargado: true } },
+      bloquea: { include: { dependiente: true } },
+      bloqueadaPor: { include: { bloqueadora: true } },
+    },
   })
 }
 

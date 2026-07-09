@@ -37,6 +37,7 @@ export interface Tarea {
   imagenes: ImagenTarea[]
   createdAt: string
   updatedAt: string
+  ultimaAlertaFin?: string
 }
 
 export interface TareaDependencia {

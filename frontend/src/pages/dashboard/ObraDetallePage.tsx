@@ -9,6 +9,7 @@ import TareaPanel from '@/components/TareaPanel'
 import Kanban from '@/components/Kanban'
 import SelectorMes from '@/components/SelectorMes'
 import AlertDialog from '@/components/AlertDialog'
+import AlertaFinDialog from '@/components/AlertaFinDialog'
 
 type Seccion = 'tareas' | 'cronograma' | 'presupuesto' | 'metricas' | 'archivos'
 
@@ -36,6 +37,9 @@ export default function ObraPage() {
     crearDependencia,
     error,
     limpiarError,
+    obtenerAlertasFin,
+    responderAlertaFin,
+    actionLoading
   } = useTareas(Number(id))
 
   const [panelAbierto, setPanelAbierto] = useState(false)
@@ -46,7 +50,18 @@ export default function ObraPage() {
   const [fechaSeleccionada, setFechaSeleccionada] =
   useState(new Date())
   const [abrirEnEdicion, setAbrirEnEdicion] = useState(false)
+  const [alertasFin, setAlertasFin] = useState<Tarea[]>([])
 
+useEffect(() => {
+  obtenerAlertasFin().then(setAlertasFin).catch(console.error)
+}, [id])
+
+async function handleAlertaFin(termino: boolean) {
+  const tarea = alertasFin[0]
+  if (!tarea) return
+  await responderAlertaFin(tarea.id, termino)
+  setAlertasFin(prev => prev.slice(1))
+}
   
   const tareaSeleccionada =
   tareas.find(t => t.id === tareaSeleccionadaId) ?? null
@@ -144,6 +159,7 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
     }
   })
 }
+
 
   if (loading) {
     return (
@@ -309,6 +325,16 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         message={error ?? ''}
         onClose={limpiarError}
       />
+      <AlertaFinDialog
+        open={alertasFin.length > 0}
+        tarea={alertasFin[0] ?? null}
+        restantes={alertasFin.length}
+        loading={actionLoading}
+        onSi={() => handleAlertaFin(true)}
+        onNo={() => handleAlertaFin(false)}
+      />
+
+
     </div>
   )
 }

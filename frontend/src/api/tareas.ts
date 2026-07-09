@@ -103,3 +103,13 @@ export const eliminarDependencia = (tareaId: number, dependenciaId: number) =>
     apiFetch(`/api/tareas/dependencia/${dependenciaId}`, {
         method: 'DELETE'
     })
+
+export const getAlertasFin = () =>
+  apiFetch<Tarea[]>('/api/tareas/alertas/fin')
+
+export const confirmarAlertaFin = (tareaId: number, termino: boolean) =>
+  apiFetch<Tarea>(`/api/tareas/${tareaId}/alertas/fin`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ termino }),
+  })
