@@ -254,7 +254,7 @@ const getPersistentLines = () => {
     {diasProx === 0 ? (
       <span className="text-[10px]">EMPIEZA HOY</span>
     ) : (
-      <span className="text-[12px]">{diasProx}</span>
+      <span className="text-[10px]">EMPIEZA EN {diasProx}D</span>
     )}
   </span>
 )}
@@ -262,8 +262,10 @@ const getPersistentLines = () => {
 {atrasada && (
   <span
     className="flex items-center gap-1 font-bold shrink-0 text-[#F99783]"
-    title={diasAtraso === 0 ? 'Vence hoy' : `Lleva ${diasAtraso} día${diasAtraso === 1 ? '' : 's'} de atraso`}
+    title={`Lleva ${diasAtraso} día${diasAtraso === 1 ? '' : 's'} de atraso`}
   >
+    <AlertTriangle size={15} strokeWidth={2.0} />
+    <span className="text-[10px] uppercase tracking-wide">{diasAtraso}D ATRASO</span>
   </span>
 )}
   
@@ -360,6 +362,15 @@ const getPersistentLines = () => {
   >
     
   </div>
+)}
+{bar.extendida && (
+  <div
+    className="absolute top-0 right-0 h-full rounded-r-[4px] pointer-events-none"
+    style={{
+      width: `${100 - (bar.widthPlan / bar.width) * 100}%`,
+      backgroundImage: 'repeating-linear-gradient(45deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 3px, transparent 3px, transparent 6px)',
+    }}
+  />
 )}
               {/* Manejador izquierdo (Resize) */}
               <motion.div 

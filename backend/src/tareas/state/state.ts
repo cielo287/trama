@@ -7,7 +7,7 @@ export const TRANSICIONES_VALIDAS: Record<EstadoTarea, EstadoTarea[]> = {
     ],
     [EstadoTarea.EN_CURSO]: [
         EstadoTarea.FINALIZADA,
-        EstadoTarea.PENDIENTE // Por si se decide posponerla
+        
     ],
 
     [EstadoTarea.FINALIZADA]: [

@@ -59,7 +59,7 @@ export function calcularAtraso(tarea: {
   const MS_DIA = 1000 * 60 * 60 * 24
 
   const dias = Math.floor((hoy.getTime() - inicio.getTime()) / MS_DIA)
-  return dias >= 0
+  return dias >= 1
     ? { atrasada: true, dias }
     : { atrasada: false, dias: 0 }
 }
@@ -99,4 +99,19 @@ export function calcularProximidadFin(tarea: {
 
   if (dias >= 0 && dias <= 7) return { proxima: true, dias }
   return { proxima: false, dias: 0 }
+}
+
+
+export function fechaRealInicio(tarea: Tarea): string | undefined {
+  const registro = tarea.historialEstados
+    ?.filter(h => h.estado === 'EN_CURSO')
+    .sort((a, b) => new Date(a.fechaInicio).getTime() - new Date(b.fechaInicio).getTime())[0]
+  return registro?.fechaInicio
+}
+
+export function fechaRealFin(tarea: Tarea): string | undefined {
+  const registro = tarea.historialEstados
+    ?.filter(h => h.estado === 'FINALIZADA')
+    .sort((a, b) => new Date(b.fechaInicio).getTime() - new Date(a.fechaInicio).getTime())[0]
+  return registro?.fechaInicio
 }

@@ -63,7 +63,7 @@ model Tarea {
   prioridad       String?
   
   // --- Control de Estado ---
-  // Valores esperados: "PENDIENTE", "EN_CURSO", "ATRASADA", "FINALIZADA"
+  // Valores esperados: "PENDIENTE", "EN_CURSO", "FINALIZADA"
   estado          String        @default("PENDIENTE") 
   
   // --- Relaciones existentes ---

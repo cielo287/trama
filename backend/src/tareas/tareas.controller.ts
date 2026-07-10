@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { TareasService } from './tareas.service';
 import { CreateTareaDto } from './dto/create-tarea.dto';
 import { UpdateTareaDto } from './dto/update-tarea.dto';
@@ -143,9 +143,12 @@ obtenerHistorial(
   );
 }
 
-@Get('alertas/fin')
-obtenerAlertasFin(@CurrentUser() user: UserPayload) {
-  return this.tareasService.obtenerAlertasFin(user.userId)
+@Get('alertas/fin/:obraId')
+obtenerAlertasFin(
+  @CurrentUser() user: UserPayload,
+  @Param('obraId', ParseIntPipe) obraId: number,
+) {
+  return this.tareasService.obtenerAlertasFin(user.userId, obraId)
 }
 
 @Post(':id/alertas/fin')

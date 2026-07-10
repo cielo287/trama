@@ -18,6 +18,15 @@ export interface Obra {
   tareas: Tarea[]
 }
 
+export interface HistorialEstado {
+  id: number
+  estado: EstadoTarea
+  fechaInicio: string
+  fechaFin?: string | null
+  notas?: string | null
+  tareaId: number
+}
+
 export interface Tarea {
   id: number
   titulo: string
@@ -38,6 +47,7 @@ export interface Tarea {
   createdAt: string
   updatedAt: string
   ultimaAlertaFin?: string
+  historialEstados?: HistorialEstado[]
 }
 
 export interface TareaDependencia {

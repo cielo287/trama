@@ -314,7 +314,7 @@ function limpiarError() {
 }
 
 async function obtenerAlertasFin() {
-  return getAlertasFin()
+  return getAlertasFin(obraId)
 }
 
 async function responderAlertaFin(tareaId: number, termino: boolean) {

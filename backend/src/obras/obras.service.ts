@@ -57,40 +57,29 @@ async create(createObraDto: CreateObraDto, usuarioId: number) {
     });
   }
 
-  async findTareas(obraId: number, usuarioId: number) {
+async findTareas(obraId: number, usuarioId: number) {
+  await this.findOne(obraId, usuarioId);
 
-    await this.findOne(obraId, usuarioId);
-    
-  
-    return this.prisma.tarea.findMany({
-      where: { obraId },
-      orderBy: { ordenEjecucion: 'asc' 
-        
+  return this.prisma.tarea.findMany({
+    where: { obraId },
+    orderBy: { ordenEjecucion: 'asc' },
+    include: {
+      tareaPadre: true,
+      subtareas: true,
+      bloqueadaPor: {
+        include: { bloqueadora: true }
       },
-      include: {
-        tareaPadre: true,
-        subtareas: true,
-        bloqueadaPor: {
-          include: {
-            bloqueadora: true,
-          }
-        },
-        bloquea: {
-          include: {
-            dependiente: true,  
-          } 
-        },
-        detallesMaterial: {
-          include: {
-            material: true
-          }
-        },
-        manoDeObra: {
-          include: {
-            encargado: true
-          }
-        }
-      }
-    });
-  }
+      bloquea: {
+        include: { dependiente: true }
+      },
+      detallesMaterial: {
+        include: { material: true }
+      },
+      manoDeObra: {
+        include: { encargado: true }
+      },
+      historialEstados: true,
+    }
+  });
+}
 }

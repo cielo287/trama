@@ -60,24 +60,18 @@ export class TareasService {
     });
   }
 
-  async findAll(usuarioId: number) {
-    return this.prisma.tarea.findMany({
-      where: {
-        obra: { usuarioId }
-      },
-      include: {
-        obra: true,
-        tareaPadre: true,
-        subtareas: true,
-        bloqueadaPor: {
-          include: {
-            bloqueadora: true, 
-          }
-        } 
-      },
-
-    });
-  }
+async findAll(usuarioId: number) {
+  return this.prisma.tarea.findMany({
+    where: { obra: { usuarioId } },
+    include: {
+      obra: true,
+      tareaPadre: true,
+      subtareas: true,
+      bloqueadaPor: { include: { bloqueadora: true } },
+      historialEstados: true,
+    },
+  });
+}
 
   async findOne(id: number, usuarioId: number) {
     const tarea = await this.prisma.tarea.findFirst({
@@ -309,6 +303,7 @@ async cambiarEstado(tareaId: number, nuevoEstado: EstadoTarea, usuarioId: number
           manoDeObra: { include: { encargado: true } },
           bloquea: { include: { dependiente: true } },
           bloqueadaPor: { include: { bloqueadora: true } },
+          historialEstados: true,
         },
       });
     });
@@ -606,12 +601,13 @@ async obtenerHistorialEstados(tareaId: number, usuarioId: number) {
   return historial;
 }
 
-async obtenerAlertasFin(usuarioId: number) {
+async obtenerAlertasFin(usuarioId: number, obraId: number) {
   const hoy = new Date()
   hoy.setHours(0, 0, 0, 0)
 
   return this.prisma.tarea.findMany({
     where: {
+      obraId,
       obra: { usuarioId },
       estado: EstadoTarea.EN_CURSO,
       fechaFin: { lt: hoy },
@@ -641,6 +637,7 @@ async confirmarAlertaFin(tareaId: number, usuarioId: number, termino: boolean) {
       manoDeObra: { include: { encargado: true } },
       bloquea: { include: { dependiente: true } },
       bloqueadaPor: { include: { bloqueadora: true } },
+      historialEstados: true,
     },
   })
 }

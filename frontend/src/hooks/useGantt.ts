@@ -9,6 +9,7 @@ import {
 } from 'date-fns'
 import { arrayMove } from '@dnd-kit/sortable'
 import type { Tarea } from '../types'
+import { fechaRealFin, fechaRealInicio } from '@/utils/tarea'
 
 interface UseGanttProps {
   tareas: Tarea[]
@@ -72,24 +73,37 @@ const navegarMes = (
 
 
 
-  const getBarProps = (tarea: Tarea) => {
-    if (!tarea.fechaInicio) return null
-    
-    const inicio = parseFecha(tarea.fechaInicio)
-    const fin = tarea.fechaFin ? parseFecha(tarea.fechaFin) : addDays(inicio, 1)
+const getBarProps = (tarea: Tarea) => {
+  if (!tarea.fechaInicio) return null
 
-    if (fin < start || inicio > end) return null
+  const inicioReal = fechaRealInicio(tarea)
+  const finReal = fechaRealFin(tarea)
 
-    const clampedInicio = inicio < start ? start : inicio
-    const clampedFin = fin > end ? end : fin
-    const daysBefore = differenceInDays(clampedInicio, start)
-    const duration = differenceInDays(clampedFin, clampedInicio) + 1
+  const inicio = parseFecha(inicioReal ?? tarea.fechaInicio)
+  const hoy = parseFecha(new Date().toISOString())
+  const finPlanificado = tarea.fechaFin ? parseFecha(tarea.fechaFin) : addDays(inicio, 1)
 
-    return { 
-      left: (daysBefore / totalDays) * 100, 
-      width: (duration / totalDays) * 100 
-    }
+  const finEfectivo = finReal ? parseFecha(finReal) : finPlanificado
+  const extendida = tarea.estado === 'EN_CURSO' && !finReal && finPlanificado < hoy
+  const fin = extendida ? hoy : finEfectivo
+
+  if (fin < start || inicio > end) return null
+
+  const clampedInicio = inicio < start ? start : inicio
+  const clampedFin = fin > end ? end : fin
+  const clampedFinPlan = finPlanificado > end ? end : (finPlanificado < clampedInicio ? clampedInicio : finPlanificado)
+
+  const daysBefore = differenceInDays(clampedInicio, start)
+  const durationTotal = differenceInDays(clampedFin, clampedInicio) + 1
+  const durationPlan = differenceInDays(clampedFinPlan, clampedInicio) + 1
+
+  return {
+    left: (daysBefore / totalDays) * 100,
+    width: (durationTotal / totalDays) * 100,
+    widthPlan: (durationPlan / totalDays) * 100,
+    extendida,
   }
+}
 
   const reordenarTareas = (activeId: string, overId: string) => {
     const oldIndex = tareas.findIndex(t => String(t.id) === activeId)
