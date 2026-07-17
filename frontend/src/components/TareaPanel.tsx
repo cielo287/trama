@@ -6,6 +6,7 @@ import MaterialesSection from './MaterialesSection'
 import ManoDeObraSection from './ManoDeObraSection'
 import SectionLabel from './ui/section-label'
 import { formatFechaCalendario } from '@/utils/fecha'
+import { fechaRealFin, fechaRealInicio } from '@/utils/tarea'
 
 interface Props {
   open: boolean
@@ -79,7 +80,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
   FINALIZADA: '#84CC16',
 }
 
-
+const fechasBloqueadas = !isNew && (estado === 'EN_CURSO' || estado === 'FINALIZADA')
 
   return (
     <AnimatePresence>
@@ -131,6 +132,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
                     </button>
                   </div>
                 )}
+                
                 <button
                   onClick={onClose}
                   className="text-[#6B7280] hover:text-[#A44A3F] transition-colors p-1"
@@ -183,7 +185,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-3">
                   <SectionLabel>Inicio</SectionLabel>
-                  {isEditing ? (
+                  {isEditing && !fechasBloqueadas ? (
                     <input
                       type="date"
                       value={fechaInicio}
@@ -199,7 +201,7 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
                 </div>
                 <div className="space-y-3">
                   <SectionLabel>Fin</SectionLabel>
-                  {isEditing ? (
+                  {isEditing && !fechasBloqueadas ? (
                     <input
                       type="date"
                       value={fechaFin}
@@ -213,6 +215,22 @@ const ESTADO_COLOR: Record<EstadoTarea, string> = {
                   )}
                 </div>
               </div>
+              {!isEditing && tarea && (fechaRealInicio(tarea) || fechaRealFin(tarea)) && (
+  <div className="grid grid-cols-2 gap-8 pt-2 border-t border-black/[0.04]">
+    <div className="space-y-1">
+      <SectionLabel>Inicio real</SectionLabel>
+      <div className="text-[12px] text-[#6B7280]">
+        {fechaRealInicio(tarea) ? formatFechaCalendario(fechaRealInicio(tarea)!) : '—'}
+      </div>
+    </div>
+    <div className="space-y-1">
+      <SectionLabel>Fin real</SectionLabel>
+      <div className="text-[12px] text-[#6B7280]">
+        {fechaRealFin(tarea) ? formatFechaCalendario(fechaRealFin(tarea)!) : '—'}
+      </div>
+    </div>
+  </div>
+)}
 
               {/* Estado + Prioridad */}
               <div className="grid grid-cols-2 gap-8">

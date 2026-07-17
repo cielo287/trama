@@ -10,6 +10,8 @@ import {
 import { arrayMove } from '@dnd-kit/sortable'
 import type { Tarea } from '../types'
 import { fechaRealFin, fechaRealInicio } from '@/utils/tarea'
+import { parseFechaCalendario as parseFecha } from '@/utils/fecha'
+
 
 interface UseGanttProps {
   tareas: Tarea[]
@@ -23,8 +25,8 @@ export function useGantt({ tareas, onUpdateTareas, fecha, onFechaChange }: UseGa
 
   const config = {
     minColWidth: 40,
-    rowHeight: 48,
-    colTarea: 280,
+    rowHeight: 56,
+    colTarea: 300,
     colEncargado: 160
   }
 
@@ -33,10 +35,7 @@ export function useGantt({ tareas, onUpdateTareas, fecha, onFechaChange }: UseGa
   const dias = useMemo(() => eachDayOfInterval({ start, end }), [start, end])
   const totalDays = dias.length
 
-  const parseFecha = (fechaStr: string) => {
-  const [y, m, d] = fechaStr.slice(0, 10).split('-').map(Number)
-    return new Date(y, m - 1, d)
-  }
+
 
 
   const tareasConFecha = useMemo(() => {
@@ -79,19 +78,26 @@ const getBarProps = (tarea: Tarea) => {
   const inicioReal = fechaRealInicio(tarea)
   const finReal = fechaRealFin(tarea)
 
-  const inicio = parseFecha(inicioReal ?? tarea.fechaInicio)
-  const hoy = parseFecha(new Date().toISOString())
-  const finPlanificado = tarea.fechaFin ? parseFecha(tarea.fechaFin) : addDays(inicio, 1)
+  const inicioPlanificado = parseFecha(tarea.fechaInicio)
+  const finPlanificado = tarea.fechaFin ? parseFecha(tarea.fechaFin) : addDays(inicioPlanificado, 1)
+  const duracionPlanificada = differenceInDays(finPlanificado, inicioPlanificado)
 
-  const finEfectivo = finReal ? parseFecha(finReal) : finPlanificado
-  const extendida = tarea.estado === 'EN_CURSO' && !finReal && finPlanificado < hoy
+  const inicio = inicioReal ? parseFecha(inicioReal) : inicioPlanificado
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
+
+  // Fin "objetivo" manteniendo la duración planificada, anclado al inicio real
+  const finConDuracionOriginal = addDays(inicio, duracionPlanificada)
+
+  const finEfectivo = finReal ? parseFecha(finReal) : finConDuracionOriginal
+  const extendida = tarea.estado === 'EN_CURSO' && !finReal && finConDuracionOriginal < hoy
   const fin = extendida ? hoy : finEfectivo
 
   if (fin < start || inicio > end) return null
 
   const clampedInicio = inicio < start ? start : inicio
   const clampedFin = fin > end ? end : fin
-  const clampedFinPlan = finPlanificado > end ? end : (finPlanificado < clampedInicio ? clampedInicio : finPlanificado)
+  const clampedFinPlan = finConDuracionOriginal > end ? end : (finConDuracionOriginal < clampedInicio ? clampedInicio : finConDuracionOriginal)
 
   const daysBefore = differenceInDays(clampedInicio, start)
   const durationTotal = differenceInDays(clampedFin, clampedInicio) + 1

@@ -114,7 +114,7 @@ export default function Kanban({
     fecha,
     onUpdateTareas,
     onEstadoChange: async (id, estado) => {
-      await onCambiarEstado?.(id, estado);
+      return await onCambiarEstado?.(id, estado);
     },
   });
 

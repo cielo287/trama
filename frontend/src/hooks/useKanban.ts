@@ -26,6 +26,7 @@ import {
   startOfMonth,
   endOfMonth
 } from 'date-fns'
+import { parseFechaCalendario as parseFecha } from '@/utils/fecha'
 
 
 const COLUMNAS: EstadoTarea[] = [
@@ -43,7 +44,7 @@ interface UseKanbanProps {
   onEstadoChange: (
     id: number,
     nuevoEstado: EstadoTarea
-  ) => Promise<void>
+  ) => Promise<Tarea | void>
 }
 
 export function useKanban({
@@ -177,65 +178,40 @@ const tareasFiltradas = useMemo(() => {
     return
   }
 
-  async function handleDragEnd(
-    event: DragEndEvent
-  ) {
+async function handleDragEnd(event: DragEndEvent) {
+  const { active, over } = event
+  setActiveTarea(null)
+  if (!over) return
 
-    const { active, over } = event
+  const activeId = active.id
+  const overId = over.id
+  const draggedTarea = tareas.find(t => String(t.id) === activeId)
+  if (!draggedTarea) return
 
-    setActiveTarea(null)
+  const isOverAColumn = COLUMNAS.includes(overId as EstadoTarea)
+  const overTarea = tareas.find(t => String(t.id) === overId)
+  const overColumn = isOverAColumn ? (overId as EstadoTarea) : overTarea?.estado
+  if (!overColumn) return
 
-    if (!over) return
+  if (draggedTarea.estado !== overColumn) {
+    const prevTareas = tareas
 
-    const activeId = active.id
-    const overId = over.id
-
-    const draggedTarea = tareas.find(
-      t => String(t.id) === activeId
+    // Optimistic update liviano, solo para feedback visual inmediato
+    const nuevasTareas = tareas.map(t =>
+      t.id === draggedTarea.id ? { ...t, estado: overColumn } : t
     )
+    onUpdateTareas(nuevasTareas)
 
-    if (!draggedTarea) return
-
-    const isOverAColumn =
-      COLUMNAS.includes(overId as EstadoTarea)
-
-    const overTarea = tareas.find(
-      t => String(t.id) === overId
-    )
-
-    const overColumn = isOverAColumn
-      ? (overId as EstadoTarea)
-      : overTarea?.estado
-
-    if (!overColumn) return
-
-    /**
-     * CAMBIO DE COLUMNA
-     */
-    if (draggedTarea.estado !== overColumn) {
-
-      const prevTareas = tareas
-
-      const nuevasTareas = tareas.map(t =>
-        t.id === draggedTarea.id
-          ? {
-              ...t,
-              estado: overColumn
-            }
-          : t
-      )
-
-      onUpdateTareas(nuevasTareas)
-
-      try {
-        await onEstadoChange(draggedTarea.id, overColumn)
-      } catch (error) {
-        console.error(error)
-        onUpdateTareas(prevTareas)
+    try {
+      const actualizada = await onEstadoChange(draggedTarea.id, overColumn)
+      if (actualizada) {
+        onUpdateTareas(tareas.map(t => t.id === draggedTarea.id ? actualizada : t))
       }
-
-      return
+    } catch (error) {
+      onUpdateTareas(prevTareas)
     }
+    return
+  }
 
     /**
      * REORDER MISMA COLUMNA
@@ -264,15 +240,6 @@ const tareasFiltradas = useMemo(() => {
       onUpdateTareas(reordered)
     }
   }
-
-  function parseFecha(fechaStr: string) {
-  const [y, m, d] =
-    fechaStr.slice(0, 10)
-      .split('-')
-      .map(Number)
-
-  return new Date(y, m - 1, d)
-}
 
 
   return {

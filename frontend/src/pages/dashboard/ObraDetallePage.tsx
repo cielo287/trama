@@ -139,24 +139,24 @@ function handleTareaCreada(tarea: Tarea) {
 
 
 function handleUpdateTareas(nuevasTareas: Tarea[]) {
-  // Actualizamos estado local primero
   reordenar(nuevasTareas)
 
-  // Sincronizamos con backend solo lo que cambió
   nuevasTareas.forEach(async (nueva, index) => {
     const original = tareas.find(t => t.id === nueva.id)
     if (!original) return
-    if (
-      original.fechaInicio !== nueva.fechaInicio ||
-      original.fechaFin !== nueva.fechaFin ||
-      original.ordenEjecucion !== index + 1
-    ) {
-      await editar(nueva.id, {
-        fechaInicio: nueva.fechaInicio ?? undefined,
-        fechaFin: nueva.fechaFin ?? undefined,
-        ordenEjecucion: index + 1,
-      })
+
+    const cambioFecha = original.fechaInicio !== nueva.fechaInicio || original.fechaFin !== nueva.fechaFin
+    const cambioOrden = original.ordenEjecucion !== index + 1
+
+    if (!cambioFecha && !cambioOrden) return
+
+    const payload: any = { ordenEjecucion: index + 1 }
+    if (cambioFecha) {
+      payload.fechaInicio = nueva.fechaInicio ?? undefined
+      payload.fechaFin = nueva.fechaFin ?? undefined
     }
+
+    await editar(nueva.id, payload)
   })
 }
 
@@ -274,6 +274,8 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
             onNuevaTarea={abrirNuevaTarea}
             onUpdateTareas={handleUpdateTareas}
             onCrearDependencia={crearDependencia}
+            onCrearRapida={(titulo) => crear({ titulo, obraId: Number(id), prioridad: 'MEDIA' })}
+
           />
         )}
         {viewMode === 'kanban' && (

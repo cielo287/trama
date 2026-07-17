@@ -49,7 +49,7 @@ useEffect(() => {
     setFechaInicio(tarea.fechaInicio ? tarea.fechaInicio.slice(0, 10) : '')
     setFechaFin(tarea.fechaFin ? tarea.fechaFin.slice(0, 10) : '')
     setEstado(tarea.estado ?? 'PENDIENTE')
-    setPrioridad(tarea.prioridad ?? 'ALTA')
+    setPrioridad(tarea.prioridad ?? 'MEDIA')
 
     setIsEditing(abrirEnEdicion)
   } else {
@@ -58,7 +58,7 @@ useEffect(() => {
     setFechaInicio('')
     setFechaFin('')
     setEstado('PENDIENTE')
-    setPrioridad('ALTA')
+    setPrioridad('MEDIA')
 
     setIsEditing(true)
   }
@@ -73,13 +73,23 @@ const handleSubmit = useCallback(async () => {
         await onCambiarEstado(tarea.id, estado)
       }
 
-      await onUpdate(tarea.id, {
+      const payload: UpdateTareaInput = {
         titulo: titulo.trim(),
         descripcion: descripcion.trim() || undefined,
-        fechaInicio: fechaInicio || undefined,
-        fechaFin: fechaFin || undefined,
         prioridad,
-      })
+      }
+
+      const fechaInicioOriginal = tarea.fechaInicio ? tarea.fechaInicio.slice(0, 10) : ''
+      const fechaFinOriginal = tarea.fechaFin ? tarea.fechaFin.slice(0, 10) : ''
+
+      if (fechaInicio !== fechaInicioOriginal) {
+        payload.fechaInicio = fechaInicio || undefined
+      }
+      if (fechaFin !== fechaFinOriginal) {
+        payload.fechaFin = fechaFin || undefined
+      }
+
+      await onUpdate(tarea.id, payload)
 
       setIsEditing(false)
     } catch {

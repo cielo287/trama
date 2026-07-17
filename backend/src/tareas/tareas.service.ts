@@ -9,6 +9,10 @@ import { CreateManoDeObraDto } from './dto/create-mano-de-obra.dto';
 
 function toDate(date?: string | Date | null): Date | undefined {
   if (!date) return undefined
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const [y, m, d] = date.split('-').map(Number)
+    return new Date(y, m - 1, d) // fecha local, no UTC
+  }
   return new Date(date)
 }
 
@@ -135,6 +139,13 @@ async update(id: number, updateTareaDto: UpdateTareaDto, usuarioId: number) {
     );
   }
 
+    const tocaFechas = updateTareaDto.fechaInicio !== undefined || updateTareaDto.fechaFin !== undefined
+  if (tocaFechas && (tarea.estado === 'EN_CURSO' || tarea.estado === 'FINALIZADA')) {
+    throw new BadRequestException(
+      'No se pueden modificar las fechas planificadas de una tarea que ya está en curso o finalizada.'
+    );
+  }
+
   // ❌ coherencia de fechas
   if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
     throw new BadRequestException(
@@ -202,112 +213,105 @@ async reorder(
 }
 
 async cambiarEstado(tareaId: number, nuevoEstado: EstadoTarea, usuarioId: number, notas?: string) {
-    // 1. Buscamos la tarea con sus subtareas
   const tarea = await this.prisma.tarea.findFirst({
     where: { 
       id: tareaId,
-      obra: {
-        usuarioId
-      }
+      obra: { usuarioId }
     },
     include: { 
-      subtareas: {
-        select: { estado: true }
-      }
+      subtareas: { select: { estado: true } }
     },
   });
 
-    if (!tarea) {
-      throw new NotFoundException(`La tarea con ID ${tareaId} no existe.`);
-    }
-
-    const estadoActual = tarea.estado as EstadoTarea;
-
-    // 2. Validamos la transición con nuestra máquina de estados
-    const permitidos = TRANSICIONES_VALIDAS[estadoActual];
-    if (!permitidos.includes(nuevoEstado)) {
-      throw new BadRequestException(
-        `No se puede cambiar el estado de ${estadoActual} a ${nuevoEstado}.`,
-      );
-    }
-
-    // 3. Regla de negocio: No se puede finalizar si tiene subtareas abiertas
-    if (nuevoEstado === EstadoTarea.FINALIZADA) {
-      const tieneHijosAbiertos = tarea.subtareas.some(
-        (sub) => sub.estado !== EstadoTarea.FINALIZADA,
-      );
-      if (tieneHijosAbiertos) {
-        throw new BadRequestException(
-          'No podés finalizar esta tarea porque tiene subtareas pendientes de terminar.',
-        );
-      }
-    }
-    const dependeciasPendientes =
-      await this.prisma.tareaDependencia.findMany({
-        where: {
-          dependienteId: tareaId,
-          bloqueadora: {
-            estado: { not: EstadoTarea.FINALIZADA 
-            }
-          }
-        }
-      });
-    if (dependeciasPendientes.length > 0) {
-      if (nuevoEstado === EstadoTarea.EN_CURSO) {
-        throw new BadRequestException(
-          'No podés poner esta tarea en proceso porque depende de otras tareas que no están finalizadas.',
-        );
-      }
-    
-      if (nuevoEstado === EstadoTarea.FINALIZADA) {
-        throw new BadRequestException(
-          'No podés finalizar esta tarea porque depende de otras tareas que no están finalizadas.',
-        );
-      }
-    }
-    // 4. Usamos una transacción de Prisma para asegurar que se actualice la tarea
-    // y se cree el historial en un solo bloque (si uno falla, no se hace nada)
-    return this.prisma.$transaction(async (tx) => {
-      const ahora = new Date();
-
-      // A. Cerramos el registro anterior en el historial si existía alguno abierto
-      await tx.historialEstado.updateMany({
-        where: {
-          tareaId: tareaId,
-          fechaFin: null,
-        },
-        data: {
-          fechaFin: ahora,
-        },
-      });
-
-      // B. Creamos el nuevo registro en el historial de estados
-      await tx.historialEstado.create({
-        data: {
-          estado: nuevoEstado,
-          fechaInicio: ahora,
-          notas: notas || null,
-          tareaId: tareaId,
-        },
-      });
-
-      // C. Actualizamos el estado físico de la tarea
-      return tx.tarea.update({
-        where: { id: tareaId },
-        data: { estado: nuevoEstado },
-        include: {
-          obra: true,
-          tareaPadre: true,
-          subtareas: true,
-          detallesMaterial: { include: { material: true } },
-          manoDeObra: { include: { encargado: true } },
-          bloquea: { include: { dependiente: true } },
-          bloqueadaPor: { include: { bloqueadora: true } },
-          historialEstados: true,
-        },
-      });
-    });
+  if (!tarea) {
+    throw new NotFoundException(`La tarea con ID ${tareaId} no existe.`);
   }
+
+  const estadoActual = tarea.estado as EstadoTarea;
+
+  const permitidos = TRANSICIONES_VALIDAS[estadoActual];
+  if (!permitidos.includes(nuevoEstado)) {
+    throw new BadRequestException(
+      `No se puede cambiar el estado de ${estadoActual} a ${nuevoEstado}.`,
+    );
+  }
+
+  if (nuevoEstado === EstadoTarea.FINALIZADA) {
+    const tieneHijosAbiertos = tarea.subtareas.some(
+      (sub) => sub.estado !== EstadoTarea.FINALIZADA,
+    );
+    if (tieneHijosAbiertos) {
+      throw new BadRequestException(
+        'No podés finalizar esta tarea porque tiene subtareas pendientes de terminar.',
+      );
+    }
+  }
+
+  const dependeciasPendientes = await this.prisma.tareaDependencia.findMany({
+    where: {
+      dependienteId: tareaId,
+      bloqueadora: { estado: { not: EstadoTarea.FINALIZADA } }
+    }
+  });
+  if (dependeciasPendientes.length > 0) {
+    if (nuevoEstado === EstadoTarea.EN_CURSO) {
+      throw new BadRequestException(
+        'No podés poner esta tarea en proceso porque depende de otras tareas que no están finalizadas.',
+      );
+    }
+    if (nuevoEstado === EstadoTarea.FINALIZADA) {
+      throw new BadRequestException(
+        'No podés finalizar esta tarea porque depende de otras tareas que no están finalizadas.',
+      );
+    }
+  }
+
+  return this.prisma.$transaction(async (tx) => {
+    const ahora = new Date();
+
+    await tx.historialEstado.updateMany({
+      where: { tareaId, fechaFin: null },
+      data: { fechaFin: ahora },
+    });
+
+    await tx.historialEstado.create({
+      data: {
+        estado: nuevoEstado,
+        fechaInicio: ahora,
+        notas: notas || null,
+        tareaId,
+      },
+    });
+
+    // Autocompletar fechas planificadas si la tarea arranca sin plan previo
+    const dataUpdate: any = { estado: nuevoEstado };
+if (nuevoEstado === EstadoTarea.EN_CURSO && !tarea.fechaInicio) {
+  const hoyLocal = new Date()
+  hoyLocal.setHours(0, 0, 0, 0)
+
+  const finLocal = new Date(hoyLocal)
+  finLocal.setDate(finLocal.getDate() + 2)
+
+  dataUpdate.fechaInicio = hoyLocal
+  dataUpdate.fechaFin = finLocal
+}
+
+    return tx.tarea.update({
+      where: { id: tareaId },
+      data: dataUpdate,
+      include: {
+        obra: true,
+        tareaPadre: true,
+        subtareas: true,
+        detallesMaterial: { include: { material: true } },
+        manoDeObra: { include: { encargado: true } },
+        bloquea: { include: { dependiente: true } },
+        bloqueadaPor: { include: { bloqueadora: true } },
+        historialEstados: true,
+      },
+    });
+  });
+}
 
   async crearDetalleMaterial(tareaId: number, createDetalleMaterialDto: CreateDetalleMaterialDto, usuarioId: number) {
     const tarea = await this.prisma.tarea.findFirst({
@@ -605,17 +609,25 @@ async obtenerAlertasFin(usuarioId: number, obraId: number) {
   const hoy = new Date()
   hoy.setHours(0, 0, 0, 0)
 
-  return this.prisma.tarea.findMany({
+  const tareas = await this.prisma.tarea.findMany({
     where: {
       obraId,
       obra: { usuarioId },
       estado: EstadoTarea.EN_CURSO,
-      fechaFin: { lt: hoy },
       OR: [
         { ultimaAlertaFin: null },
         { ultimaAlertaFin: { lt: hoy } },
       ],
     },
+    include: { historialEstados: true },
+  })
+
+  return tareas.filter(t => {
+    if (!t.fechaInicio || !t.fechaFin) return false
+    const inicioReal = t.historialEstados.find(h => h.estado === 'EN_CURSO')?.fechaInicio ?? t.fechaInicio
+    const duracionMs = t.fechaFin.getTime() - t.fechaInicio.getTime()
+    const finAjustado = new Date(inicioReal.getTime() + duracionMs)
+    return finAjustado < hoy
   })
 }
 

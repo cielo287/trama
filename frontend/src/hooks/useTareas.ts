@@ -49,6 +49,7 @@ async function crear(
   try {
     const nueva = await createTarea(data)
     setTareas(prev => [...prev, nueva])
+    console.log('Tarea creada:', nueva)
     return nueva
   } catch (e) {
     console.error(e)
@@ -145,7 +146,6 @@ async function crear(
   tareaId: number,
   data: CreateDetalleMaterialInput
 ) {
-  console.log('agregarMaterial', tareaId, data)
   
   const nuevoDetalle = await crearDetalleMaterial(
     tareaId,

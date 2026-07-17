@@ -54,7 +54,8 @@ export function calcularAtraso(tarea: {
     return { atrasada: false, dias: 0 }
   }
 
-  const hoy = parseFechaCalendario(new Date().toISOString())
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
   const inicio = parseFechaCalendario(tarea.fechaInicio)
   const MS_DIA = 1000 * 60 * 60 * 24
 
@@ -76,7 +77,8 @@ export function calcularProximidad(tarea: {
   if (tarea.estado !== 'PENDIENTE') return { proxima: false, dias: 0 }
   if (!tarea.fechaInicio) return { proxima: false, dias: 0 }
 
-  const hoy = parseFechaCalendario(new Date().toISOString())
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
   const inicio = parseFechaCalendario(tarea.fechaInicio)
   const MS_DIA = 1000 * 60 * 60 * 24
   const dias = Math.round((inicio.getTime() - hoy.getTime()) / MS_DIA)
@@ -92,7 +94,8 @@ export function calcularProximidadFin(tarea: {
   if (tarea.estado !== 'EN_CURSO') return { proxima: false, dias: 0 }
   if (!tarea.fechaFin) return { proxima: false, dias: 0 }
 
-  const hoy = parseFechaCalendario(new Date().toISOString())
+  const hoy = new Date()
+  hoy.setHours(0, 0, 0, 0)
   const fin = parseFechaCalendario(tarea.fechaFin)
   const MS_DIA = 1000 * 60 * 60 * 24
   const dias = Math.round((fin.getTime() - hoy.getTime()) / MS_DIA)

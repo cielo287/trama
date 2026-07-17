@@ -56,6 +56,7 @@ interface Props {
   onNuevaTarea: () => void
   onFechaChange: (nuevaFecha: Date) => void
   onCrearDependencia: (bloqueadoraId: number, dependienteId: number) => Promise<unknown>
+  onCrearRapida: (titulo: string) => Promise<unknown>
 }
 
 export default function Gantt({ 
@@ -66,15 +67,33 @@ export default function Gantt({
   onUpdateTareas, 
   onTareaClick, 
   onNuevaTarea,
-  onCrearDependencia
+  onCrearDependencia,
+  onCrearRapida
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
 
   const timelineContainerRef = useRef<HTMLDivElement>(null)
 
-const { drag, startDrag, moveDrag, registerTarget } = useDependencyDrag({
+  const { drag, startDrag, moveDrag, registerTarget } = useDependencyDrag({
   onConnect: onCrearDependencia,
-})
+  })
+
+const [nuevoTitulo, setNuevoTitulo] = useState('')
+const [creandoRapida, setCreandoRapida] = useState(false)
+
+async function handleCrearRapida() {
+  const titulo = nuevoTitulo.trim()
+  if (!titulo || creandoRapida) return
+  setCreandoRapida(true)
+  try {
+    await onCrearRapida(titulo)
+    setNuevoTitulo('')
+  } catch (e) {
+    console.error(e)
+  } finally {
+    setCreandoRapida(false)
+  }
+}
 
 useEffect(() => {
   if (!drag) return
@@ -174,6 +193,7 @@ const getPersistentLines = () => {
 
   const SortableRow = ({ tarea, ...props }: { tarea: Tarea, [key: string]: any }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(tarea.id) })
+    console.log('tarea en Gantt', tarea.id, tarea.estado, tarea.historialEstados)
     const bar = getBarProps(tarea)
     const { atrasada, dias: diasAtraso } = calcularAtraso(tarea)
     const { proxima, dias: diasProx } = calcularProximidad(tarea)
@@ -212,66 +232,56 @@ const getPersistentLines = () => {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="lucide lucide-grip-vertical"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
           </div>
           
-          <div onClick={() => onTareaClick(tarea)} style={{ width: config.colTarea - 28 }} className="px-2 flex items-center gap-2 border-r border-black/[0.06] overflow-hidden cursor-pointer">
-            
-<div className="flex items-center gap-2 flex-1 min-w-0">
-  <span
-    className="px-1.5 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase shrink-0"
-    style={{
-      backgroundColor:
-        tarea.prioridad === 'ALTA'
-          ? '#FEE2E2'
-          : tarea.prioridad === 'MEDIA'
-          ? '#FEF3C7'
-          : '#ECFCCB',
-      color:
-        tarea.prioridad === 'ALTA'
-          ? '#EF4444'
-          : tarea.prioridad === 'MEDIA'
-          ? '#F59E0B'
-          : '#84CC16',
-    }}
-  >
-    {tarea.prioridad}
-  </span>
+<div onClick={() => onTareaClick(tarea)} style={{ width: config.colTarea - 28 }} className="px-2 flex flex-col justify-center gap-1 border-r border-black/[0.06] overflow-hidden cursor-pointer">
 
   <span
-    className={`font-mono text-[14px] truncate flex-1 transition-colors ${
-      isSelected
-        ? 'text-[#A44A3F] font-bold'
-        : 'text-[#333] group-hover:text-[#A44A3F]'
+    className={`font-mono text-[14px] truncate transition-colors ${
+      isSelected ? 'text-[#A44A3F] font-bold' : 'text-[#333] group-hover:text-[#A44A3F]'
     }`}
   >
     {tarea.titulo}
   </span>
-{proxima && (
-  <span
-    className="flex items-center gap-1 font-bold shrink-0"
-    style={{ color: PROXIMIDAD_COLOR[diasProx] }}
-    title={diasProx === 0 ? 'Empieza hoy' : `Empieza en ${diasProx} día${diasProx === 1 ? '' : 's'}`}
-  >
-    <AlertTriangle size={15} strokeWidth={2.0} />
-    {diasProx === 0 ? (
-      <span className="text-[10px]">EMPIEZA HOY</span>
-    ) : (
-      <span className="text-[10px]">EMPIEZA EN {diasProx}D</span>
-    )}
-  </span>
-)}
 
-{atrasada && (
-  <span
-    className="flex items-center gap-1 font-bold shrink-0 text-[#F99783]"
-    title={`Lleva ${diasAtraso} día${diasAtraso === 1 ? '' : 's'} de atraso`}
-  >
-    <AlertTriangle size={15} strokeWidth={2.0} />
-    <span className="text-[10px] uppercase tracking-wide">{diasAtraso}D ATRASO</span>
-  </span>
-)}
-  
+  <div className="flex items-center justify-between min-w-0">
+    <span
+      className="px-1.5 py-0.5 rounded text-[8px] font-bold tracking-wider uppercase shrink-0"
+      style={{
+        backgroundColor:
+          tarea.prioridad === 'ALTA' ? '#FEE2E2' : tarea.prioridad === 'MEDIA' ? '#FEF3C7' : '#ECFCCB',
+        color:
+          tarea.prioridad === 'ALTA' ? '#EF4444' : tarea.prioridad === 'MEDIA' ? '#F59E0B' : '#84CC16',
+      }}
+    >
+      {tarea.prioridad}
+    </span>
+
+    {proxima && (
+      <span
+        className="flex items-center gap-1 font-bold shrink-0"
+        style={{ color: PROXIMIDAD_COLOR[diasProx] }}
+        title={diasProx === 0 ? 'Empieza hoy' : `Empieza en ${diasProx} día${diasProx === 1 ? '' : 's'}`}
+      >
+        <AlertTriangle size={13} strokeWidth={2.0} />
+        {diasProx === 0 ? (
+          <span className="text-[9px]">EMPIEZA HOY</span>
+        ) : (
+          <span className="text-[10px]">EMPIEZA EN {diasProx}D</span>
+        )}
+      </span>
+    )}
+
+    {atrasada && (
+      <span
+        className="flex items-center gap-1 font-bold shrink-0 text-[#F99783]"
+        title={`Lleva ${diasAtraso} día${diasAtraso === 1 ? '' : 's'} de atraso`}
+      >
+        <AlertTriangle size={13} strokeWidth={2.0} />
+        <span className="text-[9px] uppercase tracking-wide">{diasAtraso}D ATRASO</span>
+      </span>
+    )}
+  </div>
 
 </div>
-          </div>
           
           <div style={{ width: config.colEncargado }} className="px-4 flex items-center overflow-hidden">
             {tarea.manoDeObra?.[0]?.encargado ? (
@@ -483,6 +493,24 @@ const getPersistentLines = () => {
               ) : null}
             </DragOverlay>
           </DndContext>
+          <div className="flex border-b border-black/[0.04]">
+  <div
+    className="sticky left-0 z-20 flex items-center bg-white border-r border-black/[0.08]"
+    style={{ width: config.colTarea + config.colEncargado, height: config.rowHeight }}
+  >
+    <input
+      value={nuevoTitulo}
+      onChange={e => setNuevoTitulo(e.target.value)}
+      onKeyDown={e => {
+        if (e.key === 'Enter') handleCrearRapida()
+      }}
+      disabled={creandoRapida}
+      placeholder="+ Nueva tarea..."
+      className="w-full h-full px-6 bg-transparent font-mono text-[13px] text-[#333] placeholder:text-gray-300 outline-none disabled:opacity-50"
+    />
+  </div>
+  <div className="flex-1" />
+</div>
         </div>
         
 {(liveLine || tareasConFecha.some(t => t.bloqueadaPor?.length)) && (
@@ -528,13 +556,7 @@ const getPersistentLines = () => {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-black/[0.05] px-6 py-4 bg-white flex items-center justify-between">
-        <button onClick={onNuevaTarea} className="flex items-center gap-3 text-[#A44A3F] hover:text-[#8c3f36] transition-all group">
-          <div className="w-6 h-6 rounded-full border-2 border-current flex items-center justify-center group-hover:scale-110">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><line x1="6" y1="2" x2="6" y2="10" /><line x1="2" y1="6" x2="10" y2="6" /></svg>
-          </div>
-          <span className="text-[12px] tracking-[0.1em] uppercase font-bold">Nueva Tarea</span>
-        </button>
+      <div className="border-t border-black/[0.05] px-6 py-4 bg-white flex items-center justify-end">
         
         <div className="flex gap-6">
           {Object.entries(ESTADO_COLOR).map(([estado, color]) => (
