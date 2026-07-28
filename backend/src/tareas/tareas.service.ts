@@ -619,16 +619,20 @@ async obtenerAlertasFin(usuarioId: number, obraId: number) {
         { ultimaAlertaFin: { lt: hoy } },
       ],
     },
-    include: { historialEstados: true },
+    include: {
+      historialEstados: true,
+      manoDeObra: { include: { encargado: true } },
+    },
   })
 
-  return tareas.filter(t => {
-    if (!t.fechaInicio || !t.fechaFin) return false
-    const inicioReal = t.historialEstados.find(h => h.estado === 'EN_CURSO')?.fechaInicio ?? t.fechaInicio
-    const duracionMs = t.fechaFin.getTime() - t.fechaInicio.getTime()
-    const finAjustado = new Date(inicioReal.getTime() + duracionMs)
-    return finAjustado < hoy
-  })
+  return tareas
+    .map(t => {
+      const inicioReal = t.historialEstados.find(h => h.estado === 'EN_CURSO')?.fechaInicio ?? t.fechaInicio
+      const duracionMs = t.fechaFin!.getTime() - t.fechaInicio!.getTime()
+      const finAjustado = new Date(inicioReal!.getTime() + duracionMs)
+      return { ...t, finAjustado }
+    })
+    .filter(t => t.fechaInicio && t.fechaFin && t.finAjustado < hoy)
 }
 
 async confirmarAlertaFin(tareaId: number, usuarioId: number, termino: boolean) {

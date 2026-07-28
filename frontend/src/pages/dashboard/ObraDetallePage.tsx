@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { getObras } from '@/api/obras'
-import type { Obra, Tarea, } from '@/types'
+import type { Obra, Tarea, TareaConAlerta } from '@/types'
 import Header from '@/components/Header'
 import { useTareas } from '@/hooks/useTareas'
 import Gantt from '@/components/Gantt'
@@ -9,7 +9,9 @@ import TareaPanel from '@/components/TareaPanel'
 import Kanban from '@/components/Kanban'
 import SelectorMes from '@/components/SelectorMes'
 import AlertDialog from '@/components/AlertDialog'
-import AlertaFinDialog from '@/components/AlertaFinDialog'
+import AlertasFinPanel from '@/components/AlertasFinPanel'
+import { Bell } from 'lucide-react'
+import { useRef } from 'react'
 
 type Seccion = 'tareas' | 'cronograma' | 'presupuesto' | 'metricas' | 'archivos'
 
@@ -50,17 +52,15 @@ export default function ObraPage() {
   const [fechaSeleccionada, setFechaSeleccionada] =
   useState(new Date())
   const [abrirEnEdicion, setAbrirEnEdicion] = useState(false)
-  const [alertasFin, setAlertasFin] = useState<Tarea[]>([])
-
+  const [alertasFin, setAlertasFin] = useState<TareaConAlerta[]>([])
+  const [alertaFinAbierta, setAlertaFinAbierta] = useState(false)
 useEffect(() => {
   obtenerAlertasFin().then(setAlertasFin).catch(console.error)
 }, [id])
 
-async function handleAlertaFin(termino: boolean) {
-  const tarea = alertasFin[0]
-  if (!tarea) return
-  await responderAlertaFin(tarea.id, termino)
-  setAlertasFin(prev => prev.slice(1))
+async function handleAlertaFin(tareaId: number, termino: boolean) {
+  await responderAlertaFin(tareaId, termino)
+  setAlertasFin(prev => prev.filter(t => t.id !== tareaId))
 }
   
   const tareaSeleccionada =
@@ -76,6 +76,18 @@ async function handleAlertaFin(termino: boolean) {
       .catch(() => navigate('/'))
       .finally(() => setLoading(false))
   }, [id])
+
+  const notifRef = useRef<HTMLDivElement>(null)
+
+useEffect(() => {
+  function handleClick(e: MouseEvent) {
+    if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+      setAlertaFinAbierta(false)
+    }
+  }
+  document.addEventListener('mousedown', handleClick)
+  return () => document.removeEventListener('mousedown', handleClick)
+}, [])
 
 function abrirNuevaTarea() {
   setAbrirEnEdicion(true)
@@ -258,6 +270,28 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
       fecha={fechaSeleccionada}
       onChange={setFechaSeleccionada}
     />
+    <div className="relative" ref={notifRef}>
+  <button
+    onClick={() => setAlertaFinAbierta(prev => !prev)}
+    className="relative flex items-center justify-center w-9 h-9 rounded-sm border border-black/[0.08] bg-white hover:bg-black/[0.03] transition-colors"
+    aria-label="Tareas pendientes de confirmar"
+  >
+    <Bell className="w-4 h-4 text-[#6B7280]" />
+    {alertasFin.length > 0 && (
+      <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-[#A44A3F] text-white text-[10px] font-bold font-mono leading-none">
+        {alertasFin.length}
+      </span>
+    )}
+  </button>
+
+  {alertaFinAbierta && (
+    <AlertasFinPanel
+      alertas={alertasFin}
+      loading={actionLoading}
+      onResponder={handleAlertaFin}
+    />
+  )}
+</div>
 
 
   </div>
@@ -327,15 +361,6 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         message={error ?? ''}
         onClose={limpiarError}
       />
-      <AlertaFinDialog
-        open={alertasFin.length > 0}
-        tarea={alertasFin[0] ?? null}
-        restantes={alertasFin.length}
-        loading={actionLoading}
-        onSi={() => handleAlertaFin(true)}
-        onNo={() => handleAlertaFin(false)}
-      />
-
 
     </div>
   )

@@ -27,6 +27,7 @@ export interface HistorialEstado {
   tareaId: number
 }
 
+
 export interface Tarea {
   id: number
   titulo: string
@@ -48,6 +49,10 @@ export interface Tarea {
   updatedAt: string
   ultimaAlertaFin?: string
   historialEstados?: HistorialEstado[]
+}
+
+export interface TareaConAlerta extends Tarea {
+  finAjustado: string
 }
 
 export interface TareaDependencia {

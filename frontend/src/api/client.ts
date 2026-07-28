@@ -1,11 +1,44 @@
+
+
+let refreshPromise: Promise<void> | null = null
+
+async function renovarSesion() {
+  const res = await fetch('/api/auth/refresh', {
+    method: 'POST',
+    credentials: 'include',
+  })
+
+  if (!res.ok) {
+    throw new Error('Sesión expirada')
+  }
+}
+
+
+
 export async function apiFetch<T>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
-  const res = await fetch(url, {
+let res = await fetch(url, {
+  credentials: 'include',
+  ...options,
+})
+
+if (res.status === 401 && !url.endsWith('/auth/refresh')) {
+
+  if (!refreshPromise) {
+    refreshPromise = renovarSesion().finally(() => {
+      refreshPromise = null
+    })
+  }
+
+  await refreshPromise
+
+  res = await fetch(url, {
     credentials: 'include',
     ...options,
   })
+}
 
   if (!res.ok) {
     const text = await res.text()
