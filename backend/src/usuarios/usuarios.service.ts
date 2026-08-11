@@ -8,25 +8,29 @@ import * as bcrypt from 'bcrypt';
 export class UsuariosService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createUsuarioDto: CreateUsuarioDto) {
+// usuarios.service.ts
+async create(
+  createUsuarioDto: CreateUsuarioDto,
+  camposVerificacion?: { codigoVerificacion: string; codigoExpiracion: Date }
+) {
+  const existingUser = await this.prisma.usuario.findUnique(
+    { where: { email: createUsuarioDto.email } }
+  );
 
-    const existingUser = await this.prisma.usuario.findUnique(
-      { where: {email: createUsuarioDto.email}
-    });
-    
-    if (existingUser) {
-      throw new ConflictException('El email ya está registrado');
-    }
-
-    const hashedPassword = await bcrypt.hash(createUsuarioDto.password, 10);
-    
-    return this.prisma.usuario.create({
-      data: {
-        ...createUsuarioDto,
-        password: hashedPassword,
-      },
-    });
+  if (existingUser) {
+    throw new ConflictException('El email ya está registrado');
   }
+
+  const hashedPassword = await bcrypt.hash(createUsuarioDto.password, 10);
+
+  return this.prisma.usuario.create({
+    data: {
+      ...createUsuarioDto,
+      password: hashedPassword,
+      ...camposVerificacion,
+    },
+  });
+}
 
   async findAll() {
     return this.prisma.usuario.findMany({

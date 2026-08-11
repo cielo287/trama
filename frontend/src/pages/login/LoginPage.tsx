@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { Input } from '@/components/ui/input'
-import { useTypewriter } from '@/hooks/useMaquinaDeEscribir'
+import RegisterModal from '@/components/RegisterModal'
+import VerificarCodigoModal from '@/components/VerificarCodigoModal'
 
 export default function LoginPage() {
-  const { login, actionLoading, error } = useAuth()
+  const { login, actionLoading, error, emailNoVerificado, limpiarEmailNoVerificado } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -13,6 +14,15 @@ export default function LoginPage() {
     await login(email, password)
   }
 
+  const [registroAbierto, setRegistroAbierto] = useState(false)
+  const [emailAVerificar, setEmailAVerificar] = useState<string | null>(null)
+
+  const emailPendiente = emailAVerificar ?? emailNoVerificado
+
+  function cerrarVerificacion() {
+    setEmailAVerificar(null)
+    limpiarEmailNoVerificado()
+  }
 
   return (
     <div className="relative min-h-screen bg-[#F8F6F1] flex items-center overflow-hidden">
@@ -141,15 +151,32 @@ export default function LoginPage() {
         ¿Olvidaste el acceso?
       </a>
       <div className="h-3 w-px bg-gray-400" />
-      <a href="#" className="font-mono text-[11px] text-[#1F2937] uppercase tracking-tighter font-bold hover:text-[#A44A3F]">
+      <button
+        type="button"
+        onClick={() => setRegistroAbierto(true)}
+        className="font-mono text-[11px] text-[#1F2937] uppercase tracking-tighter font-bold hover:text-[#A44A3F]"
+      >
         Crear cuenta
-      </a>
+      </button>
     </div>
 
   </div>
 </div>
 
       </div>
+<RegisterModal 
+  open={registroAbierto} 
+  onClose={() => setRegistroAbierto(false)} 
+  onRegistroExitoso={(email) => {
+    setRegistroAbierto(false)
+    setEmailAVerificar(email)
+  }} 
+/>
+<VerificarCodigoModal
+  open={!!emailPendiente}
+  email={emailPendiente ?? ''}
+  onVerificado={cerrarVerificacion}
+/>
     </div>
   )
 }

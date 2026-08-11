@@ -11,6 +11,7 @@ import { MaterialesModule } from './materiales/materiales.module';
 import { EncargadosModule } from './encargados/encargados.module';
 import { DetallesMaterialModule } from './detalles-material/detalles-material.module';
 import { ManoDeObraModule } from './mano-de-obra/mano-de-obra.module';
+import { MailService } from './mail/mail.service';
 
 @Module({
   imports: [
@@ -28,6 +29,6 @@ import { ManoDeObraModule } from './mano-de-obra/mano-de-obra.module';
     ManoDeObraModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, MailService],
 })
 export class AppModule {}

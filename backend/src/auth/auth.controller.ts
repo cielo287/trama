@@ -6,6 +6,8 @@ import { Res } from '@nestjs/common';
 import { CurrentUser } from './decorators/decorators/current-user.decorator';
 import { JwtAuthGuard } from './guards/guards/jwt-auth.guard';
 import type { Request } from 'express';
+import { VerificarCodigoDto } from './dto/verificacion-dto.dto';
+import { ReenviarCodigoDto } from './dto/reenviar-codigo.dto';
 
 const cookieOptions = {
   httpOnly: true,
@@ -82,7 +84,18 @@ async refresh(
     throw error; 
   }
 }
+
+@Post('verificar')
+async verificar(@Body() dto: VerificarCodigoDto) {
+  return this.authService.verificarCodigo(dto.email, dto.codigo);
 }
-  
+
+@Post('reenviar-codigo')
+async reenviarCodigo(@Body() dto: ReenviarCodigoDto) {
+  return this.authService.reenviarCodigo(dto.email);
+}
+
+}
 
   
+

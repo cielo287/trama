@@ -4,6 +4,12 @@ import { UsuariosService } from '../usuarios/usuarios.service';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
+
+
+function generarCodigoVerificacion(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6 dígitos
+}
 
 @Injectable()
 export class AuthService {
@@ -11,6 +17,7 @@ export class AuthService {
     private prisma: PrismaService,
     private usuariosService: UsuariosService,
     private jwtService: JwtService,
+    private mailService: MailService
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -34,7 +41,13 @@ export class AuthService {
     const refresh_token = this.jwtService.sign(payload, { expiresIn: '7d' })
     const hashedToken = await bcrypt.hash(refresh_token, 10)
 
-    // Un solo viaje a la DB
+  if (!user.verificado) {
+    throw new UnauthorizedException({
+    code: 'UNVERIFIED',
+    message: 'Tenés que verificar tu cuenta antes de ingresar',
+  });
+  }
+
     await this.prisma.refreshToken.create({
       data: {
         uuid,
@@ -48,12 +61,26 @@ export class AuthService {
     return { access_token, refresh_token, user }
   }
 
-  async register(createUsuarioDto: any) {
-    const user = await this.usuariosService.create(createUsuarioDto);
-    const { password, ...result } = user;
-    return result;
+
+async register(createUsuarioDto: any) {
+  const codigo = generarCodigoVerificacion();
+  const expiracion = new Date(Date.now() + 15 * 60 * 1000);
+
+  const user = await this.usuariosService.create(createUsuarioDto, {
+    codigoVerificacion: codigo,
+    codigoExpiracion: expiracion,
+  });
+
+  const { password, codigoVerificacion, ...result } = user;
+
+  try {
+    await this.mailService.enviarCodigoVerificacion(user.email, codigo);
+  } catch (error) {
+    console.error('Error enviando mail de verificación:', error);
   }
 
+  return result;
+}
   async refresh(oldToken: string) {
     let payload: { jti: string; sub: number; email: string };
 
@@ -138,4 +165,73 @@ export class AuthService {
       },
     });
   }
+
+  async verificarCodigo(email: string, codigo: string) {
+  const user = await this.usuariosService.findByEmail(email);
+
+  if (!user) throw new UnauthorizedException('Usuario no encontrado');
+
+  if (user.verificado) {
+    return { message: 'La cuenta ya estaba verificada' };
+  }
+
+  if (!user.codigoVerificacion || !user.codigoExpiracion) {
+    throw new UnauthorizedException('No hay un código pendiente para este usuario');
+  }
+
+  if (user.codigoExpiracion < new Date()) {
+    throw new UnauthorizedException('El código expiró, solicitá uno nuevo');
+  }
+
+  if (user.codigoVerificacion !== codigo) {
+    throw new UnauthorizedException('Código incorrecto');
+  }
+
+  await this.prisma.usuario.update({
+    where: { id: user.id },
+    data: {
+      verificado: true,
+      codigoVerificacion: null,
+      codigoExpiracion: null,
+    },
+  });
+
+  return { message: 'Cuenta verificada correctamente' };
+}
+
+async reenviarCodigo(email: string) {
+  const user = await this.usuariosService.findByEmail(email);
+
+  if (!user) throw new UnauthorizedException('Usuario no encontrado');
+
+  if (user.verificado) {
+    return { message: 'La cuenta ya estaba verificada' };
+  }
+
+  // Cooldown: si el código anterior fue generado hace menos de 60s, no generamos otro
+  const ahora = new Date();
+  if (user.codigoExpiracion) {
+    const generadoHaceMs = 15 * 60 * 1000 - (user.codigoExpiracion.getTime() - ahora.getTime());
+    if (generadoHaceMs < 60 * 1000) {
+      throw new UnauthorizedException('Esperá un momento antes de pedir otro código');
+    }
+  }
+
+  const codigo = generarCodigoVerificacion();
+  const expiracion = new Date(ahora.getTime() + 15 * 60 * 1000);
+
+  await this.prisma.usuario.update({
+    where: { id: user.id },
+    data: { codigoVerificacion: codigo, codigoExpiracion: expiracion },
+  });
+
+  try {
+    await this.mailService.enviarCodigoVerificacion(user.email, codigo);
+  } catch (error) {
+    console.error('Error enviando mail de verificación:', error);
+    throw new InternalServerErrorException('No se pudo enviar el código, intentá de nuevo');
+  }
+
+  return { message: 'Código reenviado' };
+}
 }

@@ -1,5 +1,5 @@
 import { apiFetch } from './client'
-import type { DetalleMaterial, ManoDeObra, Tarea, TareaDependencia } from '@/types'
+import type { DetalleMaterial, ManoDeObra, Tarea, TareaConAlerta, TareaDependencia } from '@/types'
 import type { CreateDetalleMaterialInput, CreateManoDeObraInput, CreateTareaInput } from '@/types/inputs'
 import type { UpdateTareaInput } from '@/types/inputs'
 
@@ -105,7 +105,7 @@ export const eliminarDependencia = (tareaId: number, dependenciaId: number) =>
     })
 
 export const getAlertasFin = (obraId: number) =>
-  apiFetch<Tarea[]>(`/api/tareas/alertas/fin/${obraId}`)
+  apiFetch<TareaConAlerta[]>(`/api/tareas/alertas/fin/${obraId}`)
 
 export const confirmarAlertaFin = (tareaId: number, termino: boolean) =>
   apiFetch<Tarea>(`/api/tareas/${tareaId}/alertas/fin`, {

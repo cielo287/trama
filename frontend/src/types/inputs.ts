@@ -41,3 +41,10 @@ export interface CreateDetalleMaterialInput {
   precioUnitario: number
   unidadDeMedida: string
 }
+
+export interface RegisterInput {
+  email: string
+  password: string
+  nombre: string
+  apellido: string
+}

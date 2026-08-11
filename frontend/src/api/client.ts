@@ -1,4 +1,5 @@
 
+const RUTAS_SIN_REFRESH_AUTOMATICO = ['/auth/login', '/auth/register', '/auth/verificar', '/auth/reenviar-codigo']
 
 let refreshPromise: Promise<void> | null = null
 
@@ -24,7 +25,9 @@ let res = await fetch(url, {
   ...options,
 })
 
-if (res.status === 401 && !url.endsWith('/auth/refresh')) {
+const esRutaSinRefresh = RUTAS_SIN_REFRESH_AUTOMATICO.some(ruta => url.includes(ruta))
+
+if (res.status === 401 && !url.endsWith('/auth/refresh') && !esRutaSinRefresh) {
 
   if (!refreshPromise) {
     refreshPromise = renovarSesion().finally(() => {
@@ -43,14 +46,19 @@ if (res.status === 401 && !url.endsWith('/auth/refresh')) {
   if (!res.ok) {
     const text = await res.text()
     let message = 'Error en la petición'
+    let code: string | undefined
     try {
-  const json = JSON.parse(text)
-  message = json.message || message
+      const json = JSON.parse(text)
+      message = json.message || message
+      code = json.code
     } catch {
       message = text || message
     }
 
-  throw new Error(message)}
+    const error: any = new Error(message)
+    error.code = code
+    throw error
+  }
 
   // No Content
   if (res.status === 204) {
