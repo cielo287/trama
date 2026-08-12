@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 
 import { calcularAtraso } from '@/utils/tarea';
+import { telefonoAWhatsappLink } from '@/utils/telefono';
 
 const ATRASO_COLOR = '#F99783';
 
@@ -360,29 +361,40 @@ function SortableCard({
       <div className="flex items-center justify-between">
         {/* Workers Avatars */}
         <div className="flex -space-x-1.5 items-center">
-          {tarea.manoDeObra && tarea.manoDeObra.length > 0 ? (
-            tarea.manoDeObra.slice(0, 3).map((item, index) => (
-              <div
-                key={index}
-                className="w-6 h-6 rounded-full bg-zinc-900 border border-white flex items-center justify-center text-[9px] font-bold text-white uppercase shadow-sm"
-                title={`${item.encargado?.nombre} ${item.encargado?.apellido}`}
-              >
-                {item.encargado?.nombre.charAt(0)}
-              </div>
-            ))
-          ) : (
-            <div 
-              className="w-5 h-5 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-300 hover:text-[var(--state-color)] hover:border-[var(--state-color)] transition-colors"
-              title="Sin encargado asignado"
-            >
-              <User size={10} />
-            </div>
-          )}
-          {tarea.manoDeObra && tarea.manoDeObra.length > 3 && (
-            <span className="text-[8px] font-bold text-gray-400 pl-1">
-              +{tarea.manoDeObra.length - 3}
-            </span>
-          )}
+{tarea.manoDeObra && tarea.manoDeObra.length > 0 ? (
+  tarea.manoDeObra.slice(0, 3).map((item, index) => {
+    const link = item.encargado?.telefono
+      ? telefonoAWhatsappLink(item.encargado.telefono)
+      : null
+
+    return (
+      <div
+        key={index}
+        onClick={(e) => {
+          e.stopPropagation()
+          if (link) window.open(link, '_blank')
+        }}
+        className={`w-6 h-6 rounded-full bg-zinc-900 border border-white flex items-center justify-center text-[9px] font-bold text-white uppercase shadow-sm ${
+          link ? 'cursor-pointer hover:ring-2 hover:ring-[#25D366] transition-all' : ''
+        }`}
+        title={
+          link
+            ? `${item.encargado?.nombre} ${item.encargado?.apellido} — WhatsApp`
+            : `${item.encargado?.nombre} ${item.encargado?.apellido}`
+        }
+      >
+        {item.encargado?.nombre.charAt(0)}
+      </div>
+    )
+  })
+) : (
+  <div 
+    className="w-5 h-5 rounded-full border border-dashed border-gray-300 flex items-center justify-center text-gray-300 hover:text-[var(--state-color)] hover:border-[var(--state-color)] transition-colors"
+    title="Sin encargado asignado"
+  >
+    <User size={10} />
+  </div>
+)}
         </div>
 
         {/* Date Display */}

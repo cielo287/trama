@@ -29,6 +29,7 @@ import { useGantt } from '../hooks/useGantt'
 import { useDependencyDrag, type DragState } from '../hooks/useDependencyDrag'
 import { AlertTriangle } from 'lucide-react'
 import { calcularAtraso, calcularProximidad, calcularProximidadFin } from '../utils/tarea'
+import { telefonoAWhatsappLink } from '@/utils/telefono'
 
 const ESTADO_COLOR: Record<EstadoTarea, string> = {
   PENDIENTE: '#CDC5C5',
@@ -283,15 +284,29 @@ const getPersistentLines = () => {
 
 </div>
           
-          <div style={{ width: config.colEncargado }} className="px-4 flex items-center overflow-hidden">
-            {tarea.manoDeObra?.[0]?.encargado ? (
-              <span className="font-mono text-[13px] text-[#6B7280] truncate">
-                {tarea.manoDeObra[0].encargado.nombre.charAt(0)}. {tarea.manoDeObra[0].encargado.apellido}
-              </span>
-            ) : (
-              <span className="font-mono text-[10px] text-[#ccc] uppercase tracking-wider">N/A</span>
-            )}
-          </div>
+<div style={{ width: config.colEncargado }} className="px-4 flex items-center overflow-hidden">
+  {tarea.manoDeObra?.[0]?.encargado ? (
+    (() => {
+      const link = telefonoAWhatsappLink(tarea.manoDeObra[0].encargado.telefono)
+      return (
+        <span
+          onClick={(e) => {
+            e.stopPropagation()
+            if (link) window.open(link, '_blank')
+          }}
+          className={`font-mono text-[13px] text-[#6B7280] truncate ${
+            link ? 'cursor-pointer hover:text-[#25D366] transition-colors' : ''
+          }`}
+          title={link ? 'Contactar por WhatsApp' : undefined}
+        >
+          {tarea.manoDeObra[0].encargado.nombre.charAt(0)}. {tarea.manoDeObra[0].encargado.apellido}
+        </span>
+      )
+    })()
+  ) : (
+    <span className="font-mono text-[10px] text-[#ccc] uppercase tracking-wider">N/A</span>
+  )}
+</div>
         </div>
 
         {/* Timeline (Scrollable) */}

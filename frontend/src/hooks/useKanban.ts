@@ -27,6 +27,7 @@ import {
   endOfMonth
 } from 'date-fns'
 import { parseFechaCalendario as parseFecha } from '@/utils/fecha'
+import { fechaRealFin, fechaRealInicio } from '@/utils/tarea'
 
 
 const COLUMNAS: EstadoTarea[] = [
@@ -82,11 +83,16 @@ const tareasFiltradas = useMemo(() => {
       return true
     }
 
-    const inicio = parseFecha(t.fechaInicio)
+    const inicioReal = fechaRealInicio(t)
+    const finReal = fechaRealFin(t)
 
-    const fin = t.fechaFin
-      ? parseFecha(t.fechaFin)
-      : inicio
+    const inicio = inicioReal ? parseFecha(inicioReal) : parseFecha(t.fechaInicio)
+
+    const fin = finReal
+      ? parseFecha(finReal)
+      : t.fechaFin
+        ? parseFecha(t.fechaFin)
+        : inicio
 
     return (
       inicio <= finMes &&

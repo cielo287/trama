@@ -7,6 +7,9 @@ interface Props {
     apellido: string
     telefono: string
     precio: number
+    codigoPais: string
+    codigoArea: string
+    numero: string
   }
   onCancel: () => void
   onSave: (
@@ -24,8 +27,11 @@ export default function ManoDeObraForm({
   const [telefono, setTelefono] = useState(initialData?.telefono ?? '')
   const [precio, setPrecio] = useState(initialData?.precio ?? 0)
   const [loading, setLoading] = useState(false)
+  const [codigoPais, setCodigoPais] = useState(initialData?.codigoPais ?? '+54 9')
+const [codigoArea, setCodigoArea] = useState(initialData?.codigoArea ?? '')
+const [numero, setNumero] = useState(initialData?.numero ?? '')
 
-  const handleSave = async () => {
+const handleSave = async () => {
     if (!nombre.trim() || loading) return
 
     setLoading(true)
@@ -34,7 +40,7 @@ export default function ManoDeObraForm({
     await onSave({
       nombre,
       apellido,
-      telefono,
+      telefono: `${codigoPais}${codigoArea}${numero}`.replace(/\D/g, ''),
       precio,
     })
   } finally {
@@ -100,28 +106,69 @@ return (
           />
         </div>
 
-        <div>
-          <label className="block text-[10px] uppercase tracking-[0.15em] text-[#6B7280] mb-1">
-            Teléfono
-          </label>
+<div className="col-span-2">
+  <label className="block text-[10px] uppercase tracking-[0.15em] text-[#6B7280] mb-1">
+    Teléfono
+  </label>
 
-          <input
-            value={telefono}
-            onChange={e => setTelefono(e.target.value)}
-            placeholder="351..."
-            className="
-              w-full
-              border
-              border-black/10
-              rounded-sm
-              px-2
-              py-1.5
-              text-[13px]
-              outline-none
-              focus:border-[#A44A3F]
-            "
-          />
-        </div>
+  <div className="flex items-center gap-1.5">
+  <input
+    value={codigoPais}
+    onChange={e => setCodigoPais(e.target.value.replace(/[^\d+\s]/g, ''))}
+    placeholder="+54 9"
+    className="
+      w-[52px]
+      border
+      border-black/10
+      rounded-sm
+      px-1.5
+      py-1.5
+      text-[12px]
+      text-center
+      outline-none
+      focus:border-[#A44A3F]
+    "
+  />
+
+  <input
+    value={codigoArea}
+    onChange={e => setCodigoArea(e.target.value.replace(/\D/g, ''))}
+    placeholder="351"
+    inputMode="numeric"
+    className="
+      w-[48px]
+      border
+      border-black/10
+      rounded-sm
+      px-1.5
+      py-1.5
+      text-[12px]
+      text-center
+      outline-none
+      focus:border-[#A44A3F]
+    "
+  />
+
+  <input
+    value={numero}
+    onChange={e => setNumero(e.target.value.replace(/\D/g, ''))}
+    placeholder="4524851"
+    inputMode="numeric"
+    className="
+      flex-1
+      min-w-0
+      border
+      border-black/10
+      rounded-sm
+      px-2
+      py-1.5
+      text-[13px]
+      outline-none
+      focus:border-[#A44A3F]
+    "
+  />
+</div>
+</div>
 
         <div>
           <label className="block text-[10px] uppercase tracking-[0.15em] text-[#6B7280] mb-1">

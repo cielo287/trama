@@ -38,15 +38,20 @@ export function useGantt({ tareas, onUpdateTareas, fecha, onFechaChange }: UseGa
 
 
 
-  const tareasConFecha = useMemo(() => {
+const tareasConFecha = useMemo(() => {
   return tareas.filter(t => {
     if (!t.fechaInicio) return false
 
-    const inicio = parseFecha(t.fechaInicio)
+    const inicioReal = fechaRealInicio(t)
+    const finReal = fechaRealFin(t)
 
-    const fin = t.fechaFin
-      ? parseFecha(t.fechaFin)
-      : inicio
+    const inicio = inicioReal ? parseFecha(inicioReal) : parseFecha(t.fechaInicio)
+
+    const fin = finReal
+      ? parseFecha(finReal)
+      : t.fechaFin
+        ? parseFecha(t.fechaFin)
+        : inicio
 
     return (
       inicio <= end &&
