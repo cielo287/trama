@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { CreateDetalleMaterialInput } from "@/types/inputs"
+import { useMateriales } from '@/hooks/useMateriales'
+import ComboboxCreatable from './ComboCreatable'
 
 interface Props {
   initialData?: 
@@ -31,9 +33,9 @@ export default function MaterialForm({
     useState(initialData?.unidadDeMedida ?? '')
     const [loading, setLoading] = useState(false)
 
-  const handleSave = async () => {
-    console.log({ nombre, cantidad, precioUnitario, unidadDeMedida })
-    if (!nombre.trim() || loading) return
+    const handleSave = async () => {
+    
+      if (!nombre.trim() || loading) return
 
     setLoading(true)
     try {
@@ -48,6 +50,8 @@ export default function MaterialForm({
     }
   }
 
+  const { materiales } = useMateriales()
+
 return (
   <div
     className="space-y-3"
@@ -60,27 +64,16 @@ return (
     }}
   >
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[10px] uppercase tracking-[0.15em] text-[#6B7280] mb-1">
-            Material
-          </label>
-          <input
-            value={nombre}
-            onChange={e => setNombre(e.target.value)}
-            placeholder="Cemento"
-            className="
-              w-full
-              border
-              border-black/10
-              rounded-sm
-              px-2
-              py-1.5
-              text-[13px]
-              outline-none
-              focus:border-[#A44A3F]
-            "
-          />
-        </div>
+ <div>
+  <ComboboxCreatable
+    label="Material"
+    placeholder="Cemento"
+    value={nombre}
+    onChange={setNombre}
+    onSelect={m => setNombre(m.label)}
+    options={materiales.map(m => ({ id: m.id, label: m.nombre }))}
+  />
+</div>
 
         <div>
           <label className="block text-[10px] uppercase tracking-[0.15em] text-[#6B7280] mb-1">

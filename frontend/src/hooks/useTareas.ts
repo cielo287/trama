@@ -152,8 +152,6 @@ async function crear(
     data
   )
 
-  console.log('respuesta backend', nuevoDetalle)
-
   setTareas(prev =>
     prev.map(t =>
       t.id === tareaId

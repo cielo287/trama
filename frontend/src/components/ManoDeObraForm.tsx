@@ -1,5 +1,17 @@
 import { useState } from 'react'
 import type { CreateManoDeObraInput } from '@/types/inputs'
+import { useEncargados } from '@/hooks/useEncargado'
+import ComboboxCreatable from './ComboCreatable'
+
+interface EncargadoOption {
+  id: number
+  label: string
+  nombre: string
+  apellido: string
+  telefono: string
+}
+
+
 
 interface Props {
     initialData?: {
@@ -24,18 +36,23 @@ export default function ManoDeObraForm({
 }: Props) {
   const [nombre, setNombre] = useState(initialData?.nombre ?? '')
   const [apellido, setApellido] = useState(initialData?.apellido ?? '')
-  const [telefono, setTelefono] = useState(initialData?.telefono ?? '')
   const [precio, setPrecio] = useState(initialData?.precio ?? 0)
   const [loading, setLoading] = useState(false)
   const [codigoPais, setCodigoPais] = useState(initialData?.codigoPais ?? '+54 9')
 const [codigoArea, setCodigoArea] = useState(initialData?.codigoArea ?? '')
 const [numero, setNumero] = useState(initialData?.numero ?? '')
 
+const [nombreCompleto, setNombreCompleto] = useState(
+  initialData ? `${initialData.nombre} ${initialData.apellido}`.trim() : ''
+)
+
 const handleSave = async () => {
-    if (!nombre.trim() || loading) return
+  if (!nombreCompleto.trim() || loading) return
 
-    setLoading(true)
+  const [nombre, ...resto] = nombreCompleto.trim().split(' ')
+  const apellido = resto.join(' ')
 
+  setLoading(true)
   try {
     await onSave({
       nombre,
@@ -48,6 +65,8 @@ const handleSave = async () => {
   }
 }
 
+const { encargado } = useEncargados()
+ 
 return (
   <div
     className="space-y-3"
@@ -59,52 +78,26 @@ return (
       }
     }}
   >
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[10px] uppercase tracking-[0.15em] text-[#6B7280] mb-1">
-            Nombre
-          </label>
-
-          <input
-            value={nombre}
-            onChange={e => setNombre(e.target.value)}
-            placeholder="Juan"
-            className="
-              w-full
-              border
-              border-black/10
-              rounded-sm
-              px-2
-              py-1.5
-              text-[13px]
-              outline-none
-              focus:border-[#A44A3F]
-            "
-          />
-        </div>
-
-        <div>
-          <label className="block text-[10px] uppercase tracking-[0.15em] text-[#6B7280] mb-1">
-            Apellido
-          </label>
-
-          <input
-            value={apellido}
-            onChange={e => setApellido(e.target.value)}
-            placeholder="Pérez"
-            className="
-              w-full
-              border
-              border-black/10
-              rounded-sm
-              px-2
-              py-1.5
-              text-[13px]
-              outline-none
-              focus:border-[#A44A3F]
-            "
-          />
-        </div>
+      <div className="col-span-2">
+<ComboboxCreatable<EncargadoOption>
+  label="Encargado"
+  placeholder="Juan Pérez"
+  value={nombreCompleto}
+  onChange={setNombreCompleto}
+  onSelect={opt => {
+    setNombreCompleto(`${opt.nombre} ${opt.apellido}`)
+    setCodigoPais('')
+    setCodigoArea('')
+    setNumero(opt.telefono)
+  }}
+  options={encargado.map(e => ({
+    id: e.id,
+    label: `${e.nombre} ${e.apellido}`,
+    nombre: e.nombre,
+    apellido: e.apellido,
+    telefono: e.telefono,
+  }))}
+/>
 
 <div className="col-span-2">
   <label className="block text-[10px] uppercase tracking-[0.15em] text-[#6B7280] mb-1">
