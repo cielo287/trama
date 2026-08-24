@@ -11,6 +11,8 @@ function generarCodigoVerificacion(): string {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6 dígitos
 }
 
+
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -20,16 +22,49 @@ export class AuthService {
     private mailService: MailService
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usuariosService.findByEmail(email);
-    if (!user) throw new UnauthorizedException('Credenciales inválidas');
+  private readonly MAX_INTENTOS_LOGIN = 5
+  private readonly BLOQUEO_LOGIN_MS = 15 * 60 * 1000
+  private readonly MAX_INTENTOS_CODIGO = 5
+  private readonly BLOQUEO_CODIGO_MS = 15 * 60 * 1000
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) throw new UnauthorizedException('Credenciales inválidas');
+async validateUser(email: string, password: string): Promise<any> {
+  const user = await this.usuariosService.findByEmail(email);
+  if (!user) throw new UnauthorizedException('Credenciales inválidas');
 
-    const { password: _, ...result } = user;
-    return result;
+  if (user.bloqueadoHastaLogin && user.bloqueadoHastaLogin > new Date()) {
+    const minutosRestantes = Math.ceil((user.bloqueadoHastaLogin.getTime() - Date.now()) / 60000)
+    throw new UnauthorizedException({
+      code: 'LOGIN_BLOQUEADO',
+      message: `Demasiados intentos fallidos. Probá de nuevo en ${minutosRestantes} min`,
+    });
   }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordValid) {
+    const intentos = user.intentosFallidosLogin + 1
+    const data: any = { intentosFallidosLogin: intentos }
+
+    if (intentos >= this.MAX_INTENTOS_LOGIN) {
+      data.bloqueadoHastaLogin = new Date(Date.now() + this.BLOQUEO_LOGIN_MS)
+      data.intentosFallidosLogin = 0 // reinicia el contador junto con el bloqueo
+    }
+
+    await this.prisma.usuario.update({ where: { id: user.id }, data })
+    throw new UnauthorizedException('Credenciales inválidas');
+  }
+
+  // Login correcto: resetear contador si tenía intentos previos
+  if (user.intentosFallidosLogin > 0) {
+    await this.prisma.usuario.update({
+      where: { id: user.id },
+      data: { intentosFallidosLogin: 0, bloqueadoHastaLogin: null },
+    })
+  }
+
+  const { password: _, ...result } = user;
+  return result;
+}
 
   async login(email: string, password: string, device?: string) {
     const user = await this.validateUser(email, password);
@@ -166,13 +201,20 @@ async register(createUsuarioDto: any) {
     });
   }
 
-  async verificarCodigo(email: string, codigo: string) {
+async verificarCodigo(email: string, codigo: string) {
   const user = await this.usuariosService.findByEmail(email);
 
   if (!user) throw new UnauthorizedException('Usuario no encontrado');
 
   if (user.verificado) {
     return { message: 'La cuenta ya estaba verificada' };
+  }
+
+  if (user.bloqueadoHastaCodigo && user.bloqueadoHastaCodigo > new Date()) {
+    const minutosRestantes = Math.ceil((user.bloqueadoHastaCodigo.getTime() - Date.now()) / 60000)
+    throw new UnauthorizedException({
+      code: 'CODIGO_BLOQUEADO',
+      message: `Demasiados intentos. Probá de nuevo en ${minutosRestantes} min`});
   }
 
   if (!user.codigoVerificacion || !user.codigoExpiracion) {
@@ -184,6 +226,15 @@ async register(createUsuarioDto: any) {
   }
 
   if (user.codigoVerificacion !== codigo) {
+    const intentos = user.intentosFallidosCodigo + 1
+    const data: any = { intentosFallidosCodigo: intentos }
+
+    if (intentos >= this.MAX_INTENTOS_CODIGO) {
+      data.bloqueadoHastaCodigo = new Date(Date.now() + this.BLOQUEO_CODIGO_MS)
+      data.intentosFallidosCodigo = 0
+    }
+
+    await this.prisma.usuario.update({ where: { id: user.id }, data })
     throw new UnauthorizedException('Código incorrecto');
   }
 
@@ -193,6 +244,8 @@ async register(createUsuarioDto: any) {
       verificado: true,
       codigoVerificacion: null,
       codigoExpiracion: null,
+      intentosFallidosCodigo: 0,
+      bloqueadoHastaCodigo: null,
     },
   });
 
@@ -222,7 +275,11 @@ async reenviarCodigo(email: string) {
 
   await this.prisma.usuario.update({
     where: { id: user.id },
-    data: { codigoVerificacion: codigo, codigoExpiracion: expiracion },
+    data: { 
+      codigoVerificacion: codigo, 
+      codigoExpiracion: expiracion,
+      intentosFallidosCodigo: 0,
+      bloqueadoHastaCodigo: null, },
   });
 
   try {

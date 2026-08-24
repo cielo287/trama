@@ -20,6 +20,11 @@ model Usuario {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
+  intentosFallidosLogin  Int       @default(0)
+  bloqueadoHastaLogin    DateTime?
+  intentosFallidosCodigo Int       @default(0)
+  bloqueadoHastaCodigo   DateTime?
+
   refreshTokens RefreshToken[]
   obras     Obra[]
   encargados Encargado[]

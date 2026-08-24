@@ -8,6 +8,7 @@ import { JwtAuthGuard } from './guards/guards/jwt-auth.guard';
 import type { Request } from 'express';
 import { VerificarCodigoDto } from './dto/verificacion-dto.dto';
 import { ReenviarCodigoDto } from './dto/reenviar-codigo.dto';
+import { Throttle } from '@nestjs/throttler'
 
 const cookieOptions = {
   httpOnly: true,
@@ -15,16 +16,18 @@ const cookieOptions = {
   sameSite: 'lax' as const,
 };
 
+
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
   
-
+  
   @Post('register')
   async register(@Body() createUsuarioDto: CreateUsuarioDto) {
     return this.authService.register(createUsuarioDto);
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
   async login(
     @Body() loginDto: { email: string; password: string, device?: string },
@@ -85,11 +88,13 @@ async refresh(
   }
 }
 
+@Throttle({ default: { limit: 5, ttl: 60000 } })
 @Post('verificar')
 async verificar(@Body() dto: VerificarCodigoDto) {
   return this.authService.verificarCodigo(dto.email, dto.codigo);
 }
 
+@Throttle({ default: { limit: 5, ttl: 60000 } })
 @Post('reenviar-codigo')
 async reenviarCodigo(@Body() dto: ReenviarCodigoDto) {
   return this.authService.reenviarCodigo(dto.email);

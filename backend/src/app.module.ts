@@ -12,12 +12,15 @@ import { EncargadosModule } from './encargados/encargados.module';
 import { DetallesMaterialModule } from './detalles-material/detalles-material.module';
 import { ManoDeObraModule } from './mano-de-obra/mano-de-obra.module';
 import { MailService } from './mail/mail.service';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
+import { APP_GUARD } from '@nestjs/core'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, 
     }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 20 }]),
     TareasModule,
     PrismaModule,
     ObrasModule,
@@ -29,6 +32,9 @@ import { MailService } from './mail/mail.service';
     ManoDeObraModule,
   ],
   controllers: [AppController],
-  providers: [AppService, MailService],
+  providers: [
+    AppService, 
+    MailService,
+    {provide: APP_GUARD, useClass: ThrottlerGuard}],
 })
 export class AppModule {}
