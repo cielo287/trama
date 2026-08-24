@@ -12,6 +12,7 @@ interface AuthContextType {
   state: AuthState
   actionLoading: boolean
   error: string | null
+  errorCode: string | null
   login: (email: string, password: string) => Promise<void>
   emailNoVerificado: string | null
   limpiarEmailNoVerificado: () => void
@@ -28,6 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: 'loading' })
   const [actionLoading, setActionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorCode, setErrorCode] = useState<string | null>(null)
   const [emailNoVerificado, setEmailNoVerificado] = useState<string | null>(null) 
 
   useEffect(() => {
@@ -53,6 +55,7 @@ async function login(email: string, password: string) {
   if (actionLoading) return
   setActionLoading(true)
   setError(null)
+  setErrorCode(null)
   try {
     await loginApi(email, password)
     const usuario = await me()
@@ -62,6 +65,7 @@ async function login(email: string, password: string) {
       setEmailNoVerificado(email)
     } else {
       setError('Email o contraseña incorrectos')
+      setErrorCode(err.code ?? null)
     }
   } finally {
     setActionLoading(false)
@@ -98,10 +102,12 @@ function limpiarEmailNoVerificado() {
   if (actionLoading) return
   setActionLoading(true)
   setError(null)
+  setErrorCode(null)
   try {
     await verificarCodigoApi(email, codigo)
   } catch (err: any) {
     setError(err.message || 'Código incorrecto')
+    setErrorCode(err.code ?? null)
     throw new Error('verificacion failed')
   } finally {
     setActionLoading(false)
@@ -112,10 +118,12 @@ async function reenviarCodigo(email: string) {
   if (actionLoading) return
   setActionLoading(true)
   setError(null)
+  setErrorCode(null)
   try {
     await reenviarCodigoApi(email)
   } catch (err: any) {
     setError(err.message || 'No se pudo reenviar el código')
+    setErrorCode(err.code ?? null)
     throw new Error('reenvio failed')
   } finally {
     setActionLoading(false)
@@ -123,7 +131,7 @@ async function reenviarCodigo(email: string) {
 }
 
   return (
-    <AuthContext.Provider value={{ state, actionLoading, error, login, logout, register, verificarCodigo, reenviarCodigo, emailNoVerificado, limpiarEmailNoVerificado }}>
+    <AuthContext.Provider value={{ state, actionLoading, error, errorCode, login, logout, register, verificarCodigo, reenviarCodigo, emailNoVerificado, limpiarEmailNoVerificado }}>
       {children}
     </AuthContext.Provider>
   )

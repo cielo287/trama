@@ -9,9 +9,10 @@ interface Props {
 }
 
 export default function VerificarCodigoModal({ open, email, onVerificado }: Props) {
-  const { verificarCodigo, reenviarCodigo, actionLoading, error } = useAuth()
+  const { verificarCodigo, reenviarCodigo, actionLoading, error, errorCode } = useAuth()
   const [codigo, setCodigo] = useState('')
   const [mensajeReenvio, setMensajeReenvio] = useState<string | null>(null)
+  const codigoBloqueado = errorCode === 'CODIGO_BLOQUEADO'
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -60,6 +61,7 @@ export default function VerificarCodigoModal({ open, email, onVerificado }: Prop
               maxLength={6}
               autoFocus
               required
+              disabled={codigoBloqueado}
             />
           </div>
 
@@ -71,24 +73,24 @@ export default function VerificarCodigoModal({ open, email, onVerificado }: Prop
           )}
 
           <div className="pt-2 space-y-4">
-            <div className="h-[3px] w-full bg-[#A44A3F] opacity-90" />
-            <button
-              type="submit"
-              disabled={actionLoading || codigo.length !== 6}
-              className="w-full bg-[#A44A3F] text-white py-4 text-[15px] font-bold uppercase tracking-[0.25em] shadow-xl shadow-[#A44A3F]/20 hover:bg-[#8e3f35] transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {actionLoading ? 'Verificando...' : 'Verificar'}
-            </button>
+            <div className="h-0.75 w-full bg-[#A44A3F] opacity-90" />
+          <button
+            type="submit"
+            disabled={actionLoading || codigo.length !== 6 || codigoBloqueado}
+            className="w-full bg-[#A44A3F] text-white py-4 text-[15px] font-bold uppercase tracking-[0.25em] shadow-xl shadow-[#A44A3F]/20 hover:bg-[#8e3f35] transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {actionLoading ? 'Verificando...' : codigoBloqueado ? 'Bloqueado' : 'Verificar'}
+          </button>
           </div>
         </form>
 
         <button
           type="button"
           onClick={handleReenviar}
-          disabled={actionLoading}
+          disabled={actionLoading || codigoBloqueado}
           className="mt-8 font-mono text-[11px] text-[#1F2937] uppercase tracking-tighter font-bold hover:text-[#A44A3F] disabled:opacity-50"
         >
-          Reenviar código
+           Reenviar código
         </button>
 
       </div>

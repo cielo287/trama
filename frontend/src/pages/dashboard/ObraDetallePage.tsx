@@ -12,8 +12,9 @@ import AlertDialog from '@/components/AlertDialog'
 import AlertasFinPanel from '@/components/AlertasFinPanel'
 import { Bell } from 'lucide-react'
 import { useRef } from 'react'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
-type Seccion = 'tareas' | 'cronograma' | 'presupuesto' | 'metricas' | 'archivos'
+type Seccion = 'tareas' | 'presupuesto' | 'proveedores'| 'metricas' | 'archivos'
 
 export default function ObraPage() {
   const { id } = useParams()
@@ -52,11 +53,12 @@ export default function ObraPage() {
   const [fechaSeleccionada, setFechaSeleccionada] =
   useState(new Date())
   const [abrirEnEdicion, setAbrirEnEdicion] = useState(false)
+  const [tareaAEliminar, setTareaAEliminar] = useState<Tarea | null>(null)
   const [alertasFin, setAlertasFin] = useState<TareaConAlerta[]>([])
   const [alertaFinAbierta, setAlertaFinAbierta] = useState(false)
-useEffect(() => {
-  obtenerAlertasFin().then(setAlertasFin).catch(console.error)
-}, [id])
+      useEffect(() => {
+        obtenerAlertasFin().then(setAlertasFin).catch(console.error)
+  }, [id])
 
 async function handleAlertaFin(tareaId: number, termino: boolean) {
   await responderAlertaFin(tareaId, termino)
@@ -192,7 +194,7 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         <aside className="w-[220px] shrink-0 border-r border-black/[0.08] bg-white/20 flex flex-col overflow-y-auto pt-5">
           {([
             { key: 'tareas',      label: 'Tareas' },
-            { key: 'cronograma',  label: 'Cronograma' },
+            {key: 'proveedores', label: 'Proveedores'},
             { key: 'presupuesto', label: 'Presupuesto' },
             { key: 'metricas',    label: 'Métricas' },
             { key: 'archivos',    label: 'Archivos' },
@@ -324,7 +326,7 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         )}
       </div>
 )}
-          {seccion === 'cronograma' && <Proximamente />}
+          {seccion === 'proveedores' && <Proximamente/>}
           {seccion === 'presupuesto' && <Proximamente />}
           {seccion === 'metricas' && <Proximamente />}
           {seccion === 'archivos' && <Proximamente />}
@@ -333,8 +335,7 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
 
       <TareaPanel
         open={panelAbierto}
-        tarea={
-          tareaSeleccionada}
+        tarea={tareaSeleccionada}
         obraId={Number(id)}
         totalTareas={tareas?.length ?? 0}
         onClose={cerrarPanel}
@@ -342,6 +343,7 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         onCreated={handleTareaCreada}
         onUpdate={editar}
         onDelete={eliminar}
+        onRequestDelete={setTareaAEliminar}
         onCambiarEstado={cambiarEstado}
         loading={tareaSeleccionada ? updating : creating}
         onNext={irSiguiente}
@@ -354,7 +356,29 @@ function handleUpdateTareas(nuevasTareas: Tarea[]) {
         onBorrarDetalleMaterial={borrarDetalleMaterial}
         onEliminarManoDeObra={eliminarMdo}
         
+        
       />
+      <ConfirmDialog
+  open={!!tareaAEliminar}
+  title="Eliminar tarea"
+  message={`¿Seguro que querés eliminar la tarea "${tareaAEliminar?.titulo}"? Esta acción no se puede deshacer y borrará los registros asociados.`}
+  confirmText="Eliminar permanentemente"
+  cancelText="Conservar"
+  onCancel={() => setTareaAEliminar(null)}
+  onConfirm={async () => {
+    if (!tareaAEliminar) return
+
+    await eliminar(tareaAEliminar.id)
+    setTareaAEliminar(null)
+  }}
+/>
+
+<AlertDialog
+  open={!!error}
+  title="No se pudo completar la acción"
+  message={error ?? ''}
+  onClose={limpiarError}
+/>
       <AlertDialog
         open={!!error}
         title="No se pudo completar la acción"

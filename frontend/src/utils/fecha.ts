@@ -8,13 +8,15 @@ export function parseFechaCalendario(fecha: string) {
   const d = new Date(fecha)
   return new Date(d.getFullYear(), d.getMonth(), d.getDate())
 }
+
+
 export function formatFechaCalendario(fecha: string) {
   return parseFechaCalendario(fecha).toLocaleDateString(
     'es-AR',
     {
       day: '2-digit',
-      month: 'long',
-      year: 'numeric',
+      month: 'short',
+      //year: 'numeric',
     }
   )
 }

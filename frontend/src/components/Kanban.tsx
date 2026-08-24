@@ -343,13 +343,13 @@ function SortableCard({
       </div>
 
       {/* Task Title */}
-      <h4 className="text-[12px] font-bold text-[#2A2A2A] mb-3 leading-snug break-words">
-        {tarea.titulo}
+      <h4 className="text-[13px] font-bold text-[#2A2A2A] mb-3 leading-snug break-words">
+        { tarea.titulo.toLocaleUpperCase()}
       </h4>
 
       {/* Task Description (Truncated) */}
       {tarea.descripcion && (
-        <p className="text-[10px] text-gray-400 mb-4 line-clamp-2 leading-relaxed">
+        <p className="text-[12px] text-gray-600 mb-4 line-clamp-2 leading-relaxed">
           {tarea.descripcion}
         </p>
       )}
@@ -368,23 +368,29 @@ function SortableCard({
       : null
 
     return (
-      <div
-        key={index}
-        onClick={(e) => {
-          e.stopPropagation()
-          if (link) window.open(link, '_blank')
-        }}
-        className={`w-6 h-6 rounded-full bg-zinc-900 border border-white flex items-center justify-center text-[9px] font-bold text-white uppercase shadow-sm ${
-          link ? 'cursor-pointer hover:ring-2 hover:ring-[#25D366] transition-all' : ''
-        }`}
-        title={
-          link
-            ? `${item.encargado?.nombre} ${item.encargado?.apellido} — WhatsApp`
-            : `${item.encargado?.nombre} ${item.encargado?.apellido}`
-        }
-      >
-        {item.encargado?.nombre.charAt(0)}
-      </div>
+<div
+  key={index}
+  onClick={(e) => {
+    e.stopPropagation()
+    if (link) window.open(link, '_blank')
+  }}
+  className={`group flex items-center gap-1.5 ${
+    link ? 'cursor-pointer' : ''
+  }`}
+  title={
+    link
+      ? `${item.encargado?.nombre} ${item.encargado?.apellido} — WhatsApp`
+      : `${item.encargado?.nombre} ${item.encargado?.apellido}`
+  }
+>
+  <div className="w-6 h-6 shrink-0 rounded-full bg-zinc-900 border border-white flex items-center justify-center text-[9px] font-bold text-white uppercase shadow-sm group-hover:ring-2 group-hover:ring-[#25D366] transition-all">
+    {item.encargado?.nombre.charAt(0)}
+  </div>
+
+  <span className="text-[9px] font-medium text-gray-600 group-hover:text-[#25D366] transition-colors">
+    {item.encargado?.nombre}
+  </span>
+</div>
     )
   })
 ) : (
@@ -399,7 +405,7 @@ function SortableCard({
 
         {/* Date Display */}
         {tarea.fechaInicio ? (
-          <div className="flex items-center gap-1 text-[9px] uppercase font-bold text-gray-400 group-hover:text-gray-700 transition-colors bg-gray-50 px-1.5 py-0.5 rounded border border-black/[0.03]">
+          <div className="flex items-center gap-1 text-[10px] uppercase font-bold text-gray-400 group-hover:text-gray-700 transition-colors bg-gray-50 px-1.5 py-0.5 rounded border border-black/[0.03]">
             <Calendar size={10} className="text-gray-400" />
             <span>{formatFechaCalendario(tarea.fechaInicio)}</span>
             {tarea.fechaFin && (
@@ -410,7 +416,7 @@ function SortableCard({
             )}
           </div>
         ) : (
-          <span className="text-[8px] uppercase tracking-tight text-gray-300 group-hover:text-[var(--state-color)]/70 transition-colors">
+          <span className="text-[10px] uppercase tracking-tight text-gray-300 group-hover:text-[var(--state-color)]/70 transition-colors">
             Sin fecha
           </span>
         )}
