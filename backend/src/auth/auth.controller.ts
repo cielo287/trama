@@ -10,12 +10,15 @@ import { VerificarCodigoDto } from './dto/verificacion-dto.dto';
 import { ReenviarCodigoDto } from './dto/reenviar-codigo.dto';
 import { Throttle } from '@nestjs/throttler'
 
-const cookieOptions = {
+const cookieOptions: {
+  httpOnly: boolean
+  secure: boolean
+  sameSite: 'none' | 'lax'
+} = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 };
-
 
 @Controller('auth')
 export class AuthController {
@@ -53,8 +56,8 @@ export class AuthController {
       await this.authService.logout(refreshToken);
     }
 
-    res.clearCookie('refresh_token');
-    res.clearCookie('access_token');
+    res.clearCookie('refresh_token', cookieOptions);
+    res.clearCookie('access_token', cookieOptions);
 
     return { message: 'Logout ok' };
   }

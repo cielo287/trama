@@ -102,7 +102,7 @@ return (
                       initialData={{
                         nombre: mano.encargado?.nombre ?? '',
                         apellido: mano.encargado?.apellido ?? '',
-                        telefono: mano.encargado?.telefono ?? '',
+                        telefono: '',
                         precio: Number(mano.precio),
                       }}
                       onCancel={() => setEditandoId(null)}

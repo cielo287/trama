@@ -216,15 +216,15 @@ const getPersistentLines = () => {
       <div 
         ref={setNodeRef} 
         style={style} 
-        className = {`flex border-b border-black/[0.04] group transition-colors
+        className = {`flex border-b border-black/4 group transition-colors
           ${isSelected
-            ? 'bg-[#A44A3F]/[0.08] border-l-2 border-l-[#A44A3F]'
+            ? 'bg-[#A44A3F]/8 border-l-2 border-l-[#A44A3F]'
             : 'hover:bg-gray-50/50'
           }`}
       >
         {/* Columnas Fijas (Sticky) */}
         <div 
-          className={`sticky left-0 z-20 flex border-r border-black/[0.08] transition-colors
+          className={`sticky left-0 z-20 flex border-r border-black/8 transition-colors
             ${isSelected ? 'bg-[#fdf8f7]' : 'bg-white group-hover:bg-gray-50'              
             }`}
           style={{ width: config.colTarea + config.colEncargado, height: config.rowHeight }}
@@ -233,7 +233,7 @@ const getPersistentLines = () => {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="lucide lucide-grip-vertical"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>
           </div>
           
-<div onClick={() => onTareaClick(tarea)} style={{ width: config.colTarea - 28 }} className="px-2 flex flex-col justify-center gap-1 border-r border-black/[0.06] overflow-hidden cursor-pointer">
+<div onClick={() => onTareaClick(tarea)} style={{ width: config.colTarea - 28 }} className="px-2 flex flex-col justify-center gap-1 border-r border-black/6 overflow-hidden cursor-pointer">
 
   <span
     className={`font-mono text-[14px] truncate transition-colors ${
@@ -310,7 +310,8 @@ const getPersistentLines = () => {
         </div>
 
         {/* Timeline (Scrollable) */}
-        <div className="flex-1 relative flex items-center px-[2px] h-[48px]">
+        <div className="flex-1 relative flex items-center px-0.5"
+              style={{height:config.rowHeight}}>
           {/* Grid de interacción para asignar fechas */}
           {!bar && (
             <div className="absolute inset-0 flex">
@@ -319,7 +320,7 @@ const getPersistentLines = () => {
                   key={`action-${idx}`}
                   onClick={() => asignarFechaClick(tarea, idx)}
                   style={{ width: `${100 / totalDays}%`, minWidth: config.minColWidth }}
-                  className="h-full hover:bg-[#A44A3F]/[0.05] cursor-crosshair transition-colors border-r border-black/[0.01]"
+                  className="h-full hover:bg-[#A44A3F]/5 cursor-crosshair transition-colors border-r border-black/1"
                   title="Click para programar desde este día"
                 />
               ))}
@@ -327,12 +328,13 @@ const getPersistentLines = () => {
           )}
 
           {/* Grid Lines de fondo */}
-          <div className="absolute inset-0 pointer-events-none flex">
+          <div className="absolute inset-0 pointer-events-none flex h-full">
             {dias.map(dia => (
               <div 
                 key={`grid-${dia.toISOString()}`}
                 style={{ width: `${100 / totalDays}%`, minWidth: config.minColWidth }}
-                className={`border-r last:border-r-0 border-black/[0.02] ${isToday(dia) ? 'bg-[#A44A3F]/[0.02]' : ''}`}
+                className={`h-full border-r last:border-r-0 border-black/2 ${
+                  isToday(dia) ? 'bg-[#A44A3F]/2' : ''}`}
               />
             ))}
           </div>
@@ -390,7 +392,7 @@ const getPersistentLines = () => {
 )}
 {bar.extendida && (
   <div
-    className="absolute top-0 right-0 h-full rounded-r-[4px] pointer-events-none"
+    className="absolute top-0 right-0 h-full rounded-r-sm pointer-events-none"
     style={{
       width: `${100 - (bar.widthPlan / bar.width) * 100}%`,
       backgroundImage: 'repeating-linear-gradient(45deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 3px, transparent 3px, transparent 6px)',
@@ -406,7 +408,7 @@ const getPersistentLines = () => {
                 className="w-2 h-full cursor-ew-resize hover:bg-black/20 flex items-center justify-center group/h"
                 title="Ajustar inicio"
               >
-                <div className="w-[1px] h-2 bg-white/40 group-hover/h:bg-white transition-colors" />
+                <div className="w-px h-2 bg-white/40 group-hover/h:bg-white transition-colors" />
               </motion.div>
               
               {/* Manejador derecho (Resize) */}
@@ -418,7 +420,7 @@ const getPersistentLines = () => {
                 className="w-2 h-full cursor-ew-resize hover:bg-black/20 flex items-center justify-center group/h"
                 title="Ajustar fin"
               >
-                <div className="w-[1px] h-2 bg-white/40 group-hover/h:bg-white transition-colors" />
+                <div className="w-px h-2 bg-white/40 group-hover/h:bg-white transition-colors" />
               </motion.div>
             </motion.div>
           )}
@@ -428,9 +430,9 @@ const getPersistentLines = () => {
   }
 
   return (
-    <div className="bg-white border border-black/[0.08] rounded-sm flex flex-col h-full font-sans">
+    <div className="bg-white border border-black/8 rounded-sm flex flex-col h-full font-sans">
       {/* Header estático */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-black/[0.1] bg-white z-50">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-black/10 bg-white z-50">
         <div className="flex items-center gap-4">
           <div className="w-2 h-2 rounded-full bg-[#A44A3F] animate-pulse" />
           <h2 className="text-[13px] tracking-[0.2em] uppercase font-bold text-[#333] font-sans">
@@ -449,9 +451,9 @@ const getPersistentLines = () => {
         <div style={{ minWidth: (config.colTarea + config.colEncargado) + (totalDays * config.minColWidth) }}>
           
           {/* Header de la tabla */}
-          <div className="sticky top-0 z-40 flex border-b border-black/[0.1] bg-gray-50/80 backdrop-blur-sm">
-            <div className="sticky left-0 z-50 flex bg-white border-r border-black/[0.08]" style={{ width: config.colTarea + config.colEncargado, height: config.rowHeight }}>
-              <div style={{ width: config.colTarea }} className="px-6 flex items-center text-[10px] tracking-[0.2em] uppercase text-[#6B7280] border-r border-black/[0.06]">Tarea</div>
+          <div className="sticky top-0 z-40 flex border-b border-black/10 bg-gray-50/80 backdrop-blur-sm">
+            <div className="sticky left-0 z-50 flex bg-white border-r border-black/8" style={{ width: config.colTarea + config.colEncargado, height: config.rowHeight }}>
+              <div style={{ width: config.colTarea }} className="px-6 flex items-center text-[10px] tracking-[0.2em] uppercase text-[#6B7280] border-r border-black/6">Tarea</div>
               <div style={{ width: config.colEncargado }} className="px-4 flex items-center text-[10px] tracking-[0.2em] uppercase text-[#6B7280]">Encargado</div>
             </div>
             
@@ -460,7 +462,7 @@ const getPersistentLines = () => {
                 <div 
                   key={`h-${dia.toISOString()}`}
                   style={{ width: `${100 / totalDays}%`, minWidth: config.minColWidth }}
-                  className={`flex flex-col items-center justify-center border-r border-black/[0.05] py-2 ${isToday(dia) ? 'bg-[#A44A3F]/[0.05]' : ''}`}
+                  className={`flex flex-col items-center justify-center border-r border-black/5 py-2 ${isToday(dia) ? 'bg-[#A44A3F]/5' : ''}`}
                 >
                   <span className={`text-[9px] uppercase leading-none mb-1 ${isToday(dia) ? 'text-[#A44A3F] font-bold' : 'text-[#9CA3AF]'}`}>{format(dia, 'EEE', { locale: es }).slice(0,1)}</span>
                   <span className={`text-[11px] leading-none ${isToday(dia) ? 'text-[#A44A3F] font-bold' : 'text-[#4B5563]'}`}>{format(dia, 'd')}</span>
@@ -479,7 +481,7 @@ const getPersistentLines = () => {
             {/* Tareas Programadas */}
             {tareasConFecha.length > 0 && (
               <>
-                <div className="sticky left-0 z-30 bg-[#fefaf9] px-4 py-1.5 border-b border-black/[0.06] text-[9px] uppercase tracking-[0.2em] font-bold text-[#A44A3F]">
+                <div className="sticky left-0 z-30 bg-[#fefaf9] px-4 py-1.5 border-b border-black/6 text-[9px] uppercase tracking-[0.2em] font-bold text-[#A44A3F]">
                    Tareas Programadas ({tareasConFecha.length})
                 </div>
                 <SortableContext items={tareasConFecha.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
@@ -491,7 +493,7 @@ const getPersistentLines = () => {
             {/* Tareas Sin Programar */}
             {tareasSinFecha.length > 0 && (
               <>
-                <div className="sticky left-0 z-30 bg-[#f9fbfb] px-4 py-1.5 border-b border-black/[0.06] text-[9px] uppercase tracking-[0.2em] font-bold text-gray-500">
+                <div className="sticky left-0 z-30 bg-[#f9fbfb] px-4 py-1.5 border-b border-black/6 text-[9px] uppercase tracking-[0.2em] font-bold text-gray-500">
                    Tareas Sin Programar ({tareasSinFecha.length})
                 </div>
                 <SortableContext items={tareasSinFecha.map(t => String(t.id))} strategy={verticalListSortingStrategy}>
@@ -508,9 +510,9 @@ const getPersistentLines = () => {
               ) : null}
             </DragOverlay>
           </DndContext>
-          <div className="flex border-b border-black/[0.04]">
+          <div className="flex border-b border-black/4">
   <div
-    className="sticky left-0 z-20 flex items-center bg-white border-r border-black/[0.08]"
+    className="sticky left-0 z-20 flex items-center bg-white border-r border-black/8"
     style={{ width: config.colTarea + config.colEncargado, height: config.rowHeight }}
   >
     <input
@@ -571,7 +573,7 @@ const getPersistentLines = () => {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-black/[0.05] px-6 py-4 bg-white flex items-center justify-end">
+      <div className="border-t border-black/5 px-6 py-4 bg-white flex items-center justify-end">
         
         <div className="flex gap-6">
           {Object.entries(ESTADO_COLOR).map(([estado, color]) => (

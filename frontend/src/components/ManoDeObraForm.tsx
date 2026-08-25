@@ -19,9 +19,9 @@ interface Props {
     apellido: string
     telefono: string
     precio: number
-    codigoPais: string
-    codigoArea: string
-    numero: string
+    //codigoPais: string
+    //codigoArea: string
+    //numero: string
   }
   onCancel: () => void
   onSave: (
@@ -38,9 +38,9 @@ export default function ManoDeObraForm({
   const [apellido, setApellido] = useState(initialData?.apellido ?? '')
   const [precio, setPrecio] = useState(initialData?.precio ?? 0)
   const [loading, setLoading] = useState(false)
-  const [codigoPais, setCodigoPais] = useState(initialData?.codigoPais ?? '+54 9')
-const [codigoArea, setCodigoArea] = useState(initialData?.codigoArea ?? '')
-const [numero, setNumero] = useState(initialData?.numero ?? '')
+  const [codigoPais, setCodigoPais] = useState('+54 9')
+  const [codigoArea, setCodigoArea] = useState('')
+  const [numero, setNumero] = useState('')
 
 const [nombreCompleto, setNombreCompleto] = useState(
   initialData ? `${initialData.nombre} ${initialData.apellido}`.trim() : ''

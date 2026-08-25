@@ -1,10 +1,12 @@
 
 const RUTAS_SIN_REFRESH_AUTOMATICO = ['/auth/login', '/auth/register', '/auth/verificar', '/auth/reenviar-codigo']
 
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
+
 let refreshPromise: Promise<void> | null = null
 
 async function renovarSesion() {
-  const res = await fetch('/api/auth/refresh', {
+  const res = await fetch('`${API_BASE_URL}/api/auth/refresh`', {
     method: 'POST',
     credentials: 'include',
   })
@@ -20,7 +22,7 @@ export async function apiFetch<T>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
-let res = await fetch(url, {
+let res = await fetch(`${API_BASE_URL}${url}`, {
   credentials: 'include',
   ...options,
 })
@@ -37,7 +39,7 @@ if (res.status === 401 && !url.endsWith('/auth/refresh') && !esRutaSinRefresh) {
 
   await refreshPromise
 
-  res = await fetch(url, {
+  res = await fetch(`${API_BASE_URL}${url}`, {
     credentials: 'include',
     ...options,
   })
