@@ -194,7 +194,7 @@ const getPersistentLines = () => {
 
   const SortableRow = ({ tarea, ...props }: { tarea: Tarea, [key: string]: any }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: String(tarea.id) })
-    console.log('tarea en Gantt', tarea.id, tarea.estado, tarea.historialEstados)
+    
     const bar = getBarProps(tarea)
     const { atrasada, dias: diasAtraso } = calcularAtraso(tarea)
     const { proxima, dias: diasProx } = calcularProximidad(tarea)

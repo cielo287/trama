@@ -49,7 +49,7 @@ async function crear(
   try {
     const nueva = await createTarea(data)
     setTareas(prev => [...prev, nueva])
-    console.log('Tarea creada:', nueva)
+    
     return nueva
   } catch (e) {
     console.error(e)
