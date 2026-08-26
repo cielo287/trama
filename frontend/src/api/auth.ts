@@ -12,9 +12,8 @@ export const login = (email: string, password: string) =>
   })
 
 export async function logout(): Promise<void> {
-  await fetch(`${BASE}/logout`, {
+  await apiFetch(`${BASE}/logout`, {
     method: 'POST',
-    credentials: 'include',
   })
 }
 
