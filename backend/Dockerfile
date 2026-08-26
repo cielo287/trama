@@ -34,6 +34,6 @@ COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=build /app/dist ./dist
 
-EXPOSE 8080
+
 
 CMD ["node", "dist/main"]
