@@ -6,7 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
 let refreshPromise: Promise<void> | null = null
 
 async function renovarSesion() {
-  const res = await fetch('`${API_BASE_URL}/api/auth/refresh`', {
+  const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
     method: 'POST',
     credentials: 'include',
   })
