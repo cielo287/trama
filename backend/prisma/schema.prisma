@@ -55,6 +55,8 @@ model Obra {
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
   tareas Tarea[]
 
+  @@index([usuarioId])
+
 }
 
 model Tarea {
@@ -93,6 +95,9 @@ model Tarea {
   bloquea TareaDependencia[] @relation("Bloqueadora")
   bloqueadaPor TareaDependencia[] @relation("Dependiente")
 
+  @@index([obraId])
+  @@index([tareaPadreId])
+
 }
 
 model TareaDependencia {
@@ -107,6 +112,9 @@ model TareaDependencia {
   createdAt DateTime @default(now())
 
   @@unique([bloqueadoraId, dependienteId])
+
+  @@index([bloqueadoraId])
+  @@index([dependienteId])
 }
 
 
@@ -119,6 +127,7 @@ model HistorialEstado {
 
   tareaId     Int
   tarea       Tarea    @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+  @@index([tareaId])
 }
 
 model ImagenTarea {
@@ -127,6 +136,7 @@ model ImagenTarea {
 
   tareaId Int
   tarea Tarea @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+  @@index([tareaId])
 }
 
 model Material {
@@ -139,6 +149,8 @@ model Material {
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
   
   detallesMaterial DetalleMaterial[]
+
+  @@index([usuarioId])
 }
 
 model DetalleMaterial {
@@ -156,6 +168,9 @@ model DetalleMaterial {
   // Relación con Tarea
   tareaId        Int
   tarea          Tarea    @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+
+  @@index([materialId])
+  @@index([tareaId])
 }
 
 
@@ -170,6 +185,8 @@ model Encargado {
   usuarioId Int
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
   manosDeObra ManoDeObra[]
+
+  @@index([usuarioId])
 }
 
 model ManoDeObra {
@@ -185,4 +202,7 @@ model ManoDeObra {
   // Relación con Tarea
   tareaId   Int
   tarea     Tarea @relation(fields: [tareaId], references: [id], onDelete: Cascade)
+
+  @@index([encargadoId])
+  @@index([tareaId])
 }
