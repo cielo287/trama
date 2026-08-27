@@ -1,31 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
-import SMTPTransport from 'nodemailer/lib/smtp-transport';
-import { setDefaultResultOrder } from 'node:dns';
-
-setDefaultResultOrder('ipv4first');
+import { Resend } from 'resend';
 
 @Injectable()
 export class MailService {
-  private transporter;
+  private resend: Resend;
 
   constructor() {
-    const options: SMTPTransport.Options = {
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_APP_PASSWORD,
-      },
-    };
-    this.transporter = nodemailer.createTransport(options);
+    this.resend = new Resend(process.env.RESEND_API_KEY);
   }
 
-
   async enviarCodigoVerificacion(destinatario: string, codigo: string) {
-    await this.transporter.sendMail({
-      from: `"trama." <${process.env.EMAIL_USER}>`,
+    const { error } = await this.resend.emails.send({
+      from: 'trama. <onboarding@resend.dev>',
       to: destinatario,
       subject: 'Tu código de verificación - trama.',
       html: `
@@ -37,5 +23,10 @@ export class MailService {
         </div>
       `,
     });
+
+    if (error) {
+      console.error('Error enviando mail de verificación:', error);
+      throw new Error('No se pudo enviar el mail de verificación');
+    }
   }
 }
