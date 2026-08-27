@@ -7,6 +7,9 @@ const BASE = '/api/obras'
 export const getObras = () =>
   apiFetch<Obra[]>(BASE)
 
+export const getObra = (id: number) =>
+  apiFetch<Obra>(`${BASE}/${id}`)
+
 export const createObra = (data: CreateObraInput) =>
   apiFetch<Obra>(BASE, {
     method: 'POST',

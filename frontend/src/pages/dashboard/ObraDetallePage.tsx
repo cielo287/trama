@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { getObras } from '@/api/obras'
+import { getObras, getObra } from '@/api/obras'
 import type { Obra, Tarea, TareaConAlerta } from '@/types'
 import Header from '@/components/Header'
 import { useTareas } from '@/hooks/useTareas'
@@ -68,16 +68,12 @@ async function handleAlertaFin(tareaId: number, termino: boolean) {
   const tareaSeleccionada =
   tareas.find(t => t.id === tareaSeleccionadaId) ?? null
   
-  useEffect(() => {
-    getObras()
-      .then(obras => {
-        const found = obras.find(o => o.id === Number(id))
-        if (!found) navigate('/')
-        else setObra(found)
-      })
-      .catch(() => navigate('/'))
-      .finally(() => setLoading(false))
-  }, [id])
+useEffect(() => {
+  getObra(Number(id))
+    .then(setObra)
+    .catch(() => navigate('/'))
+    .finally(() => setLoading(false))
+}, [id])
 
   const notifRef = useRef<HTMLDivElement>(null)
 
