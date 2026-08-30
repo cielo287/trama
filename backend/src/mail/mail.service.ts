@@ -11,7 +11,7 @@ export class MailService {
 
   async enviarCodigoVerificacion(destinatario: string, codigo: string) {
     const { error } = await this.resend.emails.send({
-      from: 'trama. <onboarding@resend.dev>',
+      from: 'trama. <verificacion@tramahq.online>',
       to: destinatario,
       subject: 'Tu código de verificación - trama.',
       html: `
