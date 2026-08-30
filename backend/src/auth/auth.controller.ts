@@ -103,6 +103,18 @@ async reenviarCodigo(@Body() dto: ReenviarCodigoDto) {
   return this.authService.reenviarCodigo(dto.email);
 }
 
+@Throttle({ default: { limit: 5, ttl: 60000 } })
+@Post('forgot-password')
+solicitarRecuperacion(@Body('email') email: string) {
+  return this.authService.solicitarRecuperacion(email);
+}
+
+@Throttle({ default: { limit: 5, ttl: 60000 } })
+@Post('reset-password')
+resetearPassword(@Body() dto: { token: string; nuevaPassword: string }) {
+  return this.authService.resetearPassword(dto.token, dto.nuevaPassword);
+}
+
 }
 
   

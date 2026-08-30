@@ -44,7 +44,7 @@ export default function VerificarCodigoModal({ open, email, onVerificado }: Prop
           Verificá tu cuenta
         </p>
         <p className="font-mono text-[12px] text-[#4B5563] mb-10">
-          Te mandamos un código de 6 dígitos a <span className="font-bold">{email}</span>
+          Te mandamos un código de 6 dígitos a <span className="font-bold">{email}. Si no aparece en tu bandeja de entrada, revisá la carpeta de Spam</span>
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-8">

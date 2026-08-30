@@ -29,4 +29,27 @@ export class MailService {
       throw new Error('No se pudo enviar el mail de verificación');
     }
   }
+
+  async enviarLinkRecuperacion(destinatario: string, token: string) {
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+  const { error } = await this.resend.emails.send({
+    from: 'trama. <verificacion@tramahq.online>',
+    to: destinatario,
+    subject: 'Recuperá tu contraseña - trama.',
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2>Recuperá tu contraseña</h2>
+        <p>Recibimos una solicitud para restablecer tu contraseña. Hacé click en el siguiente link:</p>
+        <p><a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: #000; color: #fff; text-decoration: none; border-radius: 6px;">Restablecer contraseña</a></p>
+        <p>Este link vence en 30 minutos. Si no pediste esto, ignorá este mail.</p>
+      </div>
+    `,
+  });
+
+  if (error) {
+    console.error('Error enviando mail de recuperación:', error);
+    throw new Error('No se pudo enviar el mail de recuperación');
+  }
+}
 }

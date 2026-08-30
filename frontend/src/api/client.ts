@@ -1,5 +1,5 @@
 
-const RUTAS_SIN_REFRESH_AUTOMATICO = ['/auth/login', '/auth/register', '/auth/verificar', '/auth/reenviar-codigo']
+const RUTAS_SIN_REFRESH_AUTOMATICO = ['/auth/login', '/auth/register', '/auth/verificar', '/auth/reenviar-codigo', '/auth/forgot-password', '/auth/reset-password']
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
 

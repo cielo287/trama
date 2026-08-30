@@ -2,10 +2,11 @@ import { Injectable, InternalServerErrorException, UnauthorizedException } from 
 import { JwtService } from '@nestjs/jwt';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import * as bcrypt from 'bcrypt';
-import { randomUUID } from 'crypto';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
-
+import * as crypto from 'crypto'
+import { randomUUID } from 'crypto';
 
 function generarCodigoVerificacion(): string {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6 dígitos
@@ -291,4 +292,68 @@ async reenviarCodigo(email: string) {
 
   return { message: 'Código reenviado' };
 }
+
+
+async solicitarRecuperacion(email: string) {
+  const user = await this.usuariosService.findByEmail(email);
+
+  // mismo mensaje exista o no el usuario, para no filtrar qué emails están registrados
+  if (!user) return { message: 'Si el email existe, te enviamos un link' };
+
+  // cooldown, mismo patrón que reenviarCodigo
+  const ahora = new Date();
+  if (user.tokenRecuperacionExpira) {
+    const generadoHaceMs = 30 * 60 * 1000 - (user.tokenRecuperacionExpira.getTime() - ahora.getTime());
+    if (generadoHaceMs < 60 * 1000) {
+      return { message: 'Si el email existe, te enviamos un link' };
+    }
+  }
+
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+  await this.prisma.usuario.update({
+    where: { id: user.id },
+    data: {
+      tokenRecuperacion: tokenHash,
+      tokenRecuperacionExpira: new Date(ahora.getTime() + 30 * 60 * 1000),
+    },
+  });
+
+  try {
+    await this.mailService.enviarLinkRecuperacion(user.email, rawToken);
+  } catch (error) {
+    console.error('Error enviando mail de recuperación:', error);
+  }
+
+  return { message: 'Si el email existe, te enviamos un link' };
+}
+
+async resetearPassword(token: string, nuevaPassword: string) {
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+  const user = await this.prisma.usuario.findFirst({
+    where: {
+      tokenRecuperacion: tokenHash,
+      tokenRecuperacionExpira: { gt: new Date() },
+    },
+  });
+
+  if (!user) throw new UnauthorizedException('Token inválido o expirado');
+
+  const hashedPassword = await bcrypt.hash(nuevaPassword, 10);
+
+  await this.prisma.usuario.update({
+    where: { id: user.id },
+    data: {
+      password: hashedPassword,
+      tokenRecuperacion: null,
+      tokenRecuperacionExpira: null,
+    },
+  });
+
+  return { message: 'Contraseña actualizada correctamente' };
+}
+
+
 }

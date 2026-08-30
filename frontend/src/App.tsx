@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import LoginPage from '@/pages/login/LoginPage'
 import ObrasPage from '@/pages/dashboard/ObrasPage'
 import ObraDetallePage from '@/pages/dashboard/ObraDetallePage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 
 export default function App() {
   const { state } = useAuth()
@@ -31,7 +32,7 @@ export default function App() {
         path="/obras/:id"
         element={state.status === 'authenticated' ? <ObraDetallePage /> : <Navigate to="/login" replace />}
       />
-      
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
     </Routes>
   )
 }

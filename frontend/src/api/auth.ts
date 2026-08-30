@@ -43,3 +43,17 @@ export const reenviarCodigo = (email: string) =>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
   })
+
+  export const solicitarRecuperacion = (email: string) =>
+  apiFetch<{ message: string }>(`${BASE}/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+
+export const resetearPassword = (token: string, nuevaPassword: string) =>
+  apiFetch<{ message: string }>(`${BASE}/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, nuevaPassword }),
+  })

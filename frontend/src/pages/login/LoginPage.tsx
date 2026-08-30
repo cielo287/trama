@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext'
 import { Input } from '@/components/ui/input'
 import RegisterModal from '@/components/RegisterModal'
 import VerificarCodigoModal from '@/components/VerificarCodigoModal'
+import ForgotPasswordModal from '@/components/ForgotPasswordModal'
 
 export default function LoginPage() {
   const { login, actionLoading, error, emailNoVerificado, limpiarEmailNoVerificado } = useAuth()
@@ -23,6 +24,8 @@ export default function LoginPage() {
     setEmailAVerificar(null)
     limpiarEmailNoVerificado()
   }
+
+  const [recuperacionAbierta, setRecuperacionAbierta] = useState(false)
 
   return (
     <div className="relative min-h-screen bg-[#F8F6F1] flex items-center overflow-hidden">
@@ -147,9 +150,13 @@ export default function LoginPage() {
     </form>
 
     <div className="mt-12 flex justify-between items-center opacity-90 hover:opacity-100 transition-opacity">
-      <a href="#" className="font-mono text-[11px] text-[#1F2937] uppercase tracking-tighter font-bold hover:text-[#A44A3F]">
-        ¿Olvidaste el acceso?
-      </a>
+<button
+  type="button"
+  onClick={() => setRecuperacionAbierta(true)}
+  className="font-mono text-[11px] text-[#1F2937] uppercase tracking-tighter font-bold hover:text-[#A44A3F]"
+>
+  ¿Olvidaste el acceso?
+</button>
       <div className="h-3 w-px bg-gray-400" />
       <button
         type="button"
@@ -177,6 +184,11 @@ export default function LoginPage() {
   email={emailPendiente ?? ''}
   onVerificado={cerrarVerificacion}
 />
+<ForgotPasswordModal
+  open={recuperacionAbierta}
+  onClose={() => setRecuperacionAbierta(false)}
+/>
+
     </div>
   )
 }

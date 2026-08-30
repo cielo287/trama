@@ -26,6 +26,10 @@ model Usuario {
   bloqueadoHastaCodigo   DateTime?
 
   refreshTokens RefreshToken[]
+
+  tokenRecuperacion       String?
+  tokenRecuperacionExpira DateTime?
+  
   obras     Obra[]
   encargados Encargado[]
   materiales Material[]
