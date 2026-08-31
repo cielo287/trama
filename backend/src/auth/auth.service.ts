@@ -297,10 +297,9 @@ async reenviarCodigo(email: string) {
 async solicitarRecuperacion(email: string) {
   const user = await this.usuariosService.findByEmail(email);
 
-  // mismo mensaje exista o no el usuario, para no filtrar qué emails están registrados
   if (!user) return { message: 'Si el email existe, te enviamos un link' };
 
-  // cooldown, mismo patrón que reenviarCodigo
+  
   const ahora = new Date();
   if (user.tokenRecuperacionExpira) {
     const generadoHaceMs = 30 * 60 * 1000 - (user.tokenRecuperacionExpira.getTime() - ahora.getTime());

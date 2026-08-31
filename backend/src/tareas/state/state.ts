@@ -10,7 +10,5 @@ export const TRANSICIONES_VALIDAS: Record<EstadoTarea, EstadoTarea[]> = {
         
     ],
 
-    [EstadoTarea.FINALIZADA]: [
-        EstadoTarea.EN_CURSO // Por si hay que reabrirla por un arreglo de último momento
-    ],
+    [EstadoTarea.FINALIZADA]: [],
 };
