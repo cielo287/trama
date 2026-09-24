@@ -4,14 +4,19 @@ import { Resend } from 'resend';
 @Injectable()
 export class MailService {
   private resend: Resend;
+  private readonly remitente: string;
 
-  constructor() {
+constructor() {
     this.resend = new Resend(process.env.RESEND_API_KEY);
-  }
 
+    if (!process.env.MAIL_FROM) {
+      throw new Error('Falta la variable de entorno MAIL_FROM');
+    }
+    this.remitente = process.env.MAIL_FROM;
+  }
   async enviarCodigoVerificacion(destinatario: string, codigo: string) {
     const { error } = await this.resend.emails.send({
-      from: 'trama. <verificacion@tramahq.online>',
+      from: this.remitente,
       to: destinatario,
       subject: 'Tu código de verificación - trama.',
       html: `
@@ -34,7 +39,7 @@ export class MailService {
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
   const { error } = await this.resend.emails.send({
-    from: 'trama. <verificacion@tramahq.online>',
+    from: this.remitente,
     to: destinatario,
     subject: 'Recuperá tu contraseña - trama.',
     html: `
